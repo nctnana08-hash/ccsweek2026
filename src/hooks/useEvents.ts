@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Event, EventDay, ScanSlot } from "@/lib/types";
+import { api } from "@/lib/api";
 
+// ----- Read hooks (public read-only RLS allows these) -----
 export function useEvents() {
   return useQuery({
     queryKey: ["events"],
@@ -49,13 +51,13 @@ export function useScanSlots(day_id: string | undefined | null) {
   });
 }
 
+// ----- Write hooks (admin-only, via edge functions) -----
 export function useUpsertEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (e: Partial<Event> & { event_name: string; start_date: string; end_date: string }) => {
-      const { data, error } = await supabase.from("events").upsert(e as any).select().single();
-      if (error) throw error;
-      return data as Event;
+      const res = await api.events.upsertEvent(e);
+      return res.event as Event;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
   });
@@ -64,10 +66,7 @@ export function useUpsertEvent() {
 export function useDeleteEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("events").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: async (id: string) => { await api.events.deleteEvent(id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
   });
 }
@@ -76,9 +75,8 @@ export function useUpsertEventDay() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (d: Partial<EventDay> & { event_id: string; day_label: string; date: string }) => {
-      const { data, error } = await supabase.from("event_days").upsert(d as any).select().single();
-      if (error) throw error;
-      return data as EventDay;
+      const res = await api.events.upsertDay(d);
+      return res.day as EventDay;
     },
     onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["event_days", vars.event_id] }),
   });
@@ -87,10 +85,7 @@ export function useUpsertEventDay() {
 export function useDeleteEventDay() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("event_days").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: async (id: string) => { await api.events.deleteDay(id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event_days"] }),
   });
 }
@@ -99,9 +94,8 @@ export function useUpsertScanSlot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (s: Partial<ScanSlot> & { day_id: string; slot_label: string }) => {
-      const { data, error } = await supabase.from("scan_slots").upsert(s as any).select().single();
-      if (error) throw error;
-      return data as ScanSlot;
+      const res = await api.events.upsertSlot(s);
+      return res.slot as ScanSlot;
     },
     onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["scan_slots", vars.day_id] }),
   });
@@ -110,10 +104,7 @@ export function useUpsertScanSlot() {
 export function useDeleteScanSlot() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("scan_slots").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: async (id: string) => { await api.events.deleteSlot(id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["scan_slots"] }),
   });
 }
