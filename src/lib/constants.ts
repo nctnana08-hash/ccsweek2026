@@ -21,9 +21,5 @@ export const QR_PREFIX = "CCS_QR_V1::";
 export const ADMIN_SESSION_HOURS = 8;
 export const ADMIN_SESSION_KEY = "ccs_admin_session";
 export const ACTIVE_CONTEXT_KEY = "ccs_active_context";
-export const PINS_DEFAULT = {
-  admin: "47254725",
-  date_override: "4724685",
-  delete_confirm: "4725555",
-  qr_checker: "472005",
-};
+// PIN defaults intentionally NOT exported — PINs live server-side as bcrypt hashes
+// and are verified via the verify-pin edge function. See src/lib/api.ts.
