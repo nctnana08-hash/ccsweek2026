@@ -14,9 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
-import { supabase } from "@/integrations/supabase/client";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
-import { Bunting } from "@/components/Bunting";
 import { CcsLogo } from "@/components/CcsLogo";
 
 type Feedback = { kind: "in" | "out" | "dup" | "unknown" | "ok"; text: string } | null;
@@ -93,7 +91,8 @@ export default function Attendance() {
       beep(220); return;
     }
 
-    const student = students.find((s) => s.id === payload.profile_id) || students.find((s) => s.student_id === payload.student_id);
+    // Local roster check (also re-validated server-side)
+    const student = students.find((s) => s.student_id === payload.student_id);
     if (!student) {
       setFeedback({ kind: "unknown", text: `Unknown: ${payload.student_id}` });
       beep(220); return;
@@ -103,63 +102,41 @@ export default function Attendance() {
       beep(220); return;
     }
 
-    // Duplicate check
-    const { data: existing } = await supabase
-      .from("attendance_records").select("scanned_at").eq("profile_id", student.id).eq("slot_id", activeSlot.id).maybeSingle();
-    if (existing) {
-      setFeedback({ kind: "dup", text: `${unlocked ? student.name : "✓ Already recorded"} · ${new Date((existing as any).scanned_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` });
-      beep(440); return;
-    }
-
-    // IN→OUT pairing warning
-    if (activeSlot.slot_type === "out") {
-      const { data: inMatches } = await supabase
-        .from("attendance_records").select("id").eq("profile_id", student.id).eq("day_id", activeDay.id).limit(20);
-      const slotsToday = slots.filter((s) => s.slot_type === "in").map((s) => s.id);
-      const hasIn = (inMatches as any[] | null)?.some((r) => slotsToday.includes(r.id));
-      if (!hasIn && slotsToday.length > 0) toast.warning(`${student.name}: no IN scan today — saving OUT anyway`);
-    }
-
-    // Late check
-    let isLate = false;
-    if (activeSlot.late_cutoff_time) {
-      const [h, m] = activeSlot.late_cutoff_time.split(":").map(Number);
-      const cutoff = new Date(); cutoff.setHours(h, m, 0, 0);
-      isLate = Date.now() > cutoff.getTime();
-    }
-
-    const rec = {
-      profile_id: student.id,
+    const scanInput = {
       student_id: student.student_id,
-      name: student.name,
-      section: student.section,
       event_id: ctx.event_id,
       day_id: ctx.day_id,
       slot_id: activeSlot.id,
-      slot_label: activeSlot.slot_label,
-      is_late: isLate,
       scanned_at: new Date().toISOString(),
     };
 
     if (!navigator.onLine) {
-      await queueScan({ ...rec, local_id: crypto.randomUUID() });
+      await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
       setPending(await pendingCount());
       setFeedback({ kind: "ok", text: unlocked ? `${student.name} (queued offline)` : "✓ Recorded (offline)" });
       beep(880); setCounter((c) => c + 1); return;
     }
 
     try {
-      await recordScan.mutateAsync(rec);
+      const res = await recordScan.mutateAsync(scanInput);
+      if (res.duplicate) {
+        setFeedback({ kind: "dup", text: unlocked ? `${student.name} · already recorded` : "✓ Already recorded" });
+        beep(440); return;
+      }
       const kind = activeSlot.slot_type === "out" ? "out" : "in";
-      setFeedback({ kind, text: unlocked ? `${student.name} · ${activeSlot.slot_label}` : "✓ Recorded" });
+      setFeedback({
+        kind,
+        text: unlocked ? `${student.name} · ${activeSlot.slot_label}` : "✓ Recorded",
+      });
       beep(kind === "in" ? 880 : 660);
       setCounter((c) => c + 1);
     } catch (e: any) {
-      if (e?.code === "23505") {
-        setFeedback({ kind: "dup", text: "Already recorded" }); beep(440);
+      const msg = String(e?.message ?? "");
+      if (msg.includes("unknown_student")) {
+        setFeedback({ kind: "unknown", text: "Unknown student" }); beep(220);
       } else {
         setFeedback({ kind: "unknown", text: "Save failed — queued offline" });
-        await queueScan({ ...rec, local_id: crypto.randomUUID() });
+        await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
         setPending(await pendingCount()); beep(220);
       }
     }
