@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useEvents, useEventDays, useScanSlots } from "@/hooks/useEvents";
 import { useStudents } from "@/hooks/useStudents";
-import { useActiveContext, useUpdateActiveContext, usePins } from "@/hooks/useSettings";
+import { useActiveContext, useUpdateActiveContext } from "@/hooks/useSettings";
 import { useRealtimeAttendance, useRecordScan } from "@/hooks/useAttendance";
 import { useAdmin } from "@/stores/admin";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ export default function Attendance() {
   const { data: days = [] } = useEventDays(ctx?.event_id ?? null);
   const { data: slots = [] } = useScanSlots(ctx?.day_id ?? null);
   const { data: students = [] } = useStudents();
-  const { data: pins } = usePins();
+  
   const recordScan = useRecordScan();
   useRealtimeAttendance();
 
