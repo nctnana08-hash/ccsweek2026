@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { ADMIN_SESSION_HOURS, ADMIN_SESSION_KEY } from "./constants";
+import { ADMIN_SESSION_HOURS, ADMIN_SESSION_KEY } from "@/lib/constants";
 
 interface AdminState {
   unlocked: boolean;

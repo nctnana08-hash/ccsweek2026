@@ -9,7 +9,7 @@ export function usePins() {
     queryFn: async () => {
       const { data, error } = await supabase.from("app_settings").select("value").eq("key", "pins").maybeSingle();
       if (error) throw error;
-      return (data?.value as PinSet) ?? PINS_DEFAULT;
+      return (data?.value as unknown as PinSet) ?? PINS_DEFAULT;
     },
   });
 }
@@ -35,7 +35,7 @@ export function useActiveContext() {
         .eq("key", "active_scan_context")
         .maybeSingle();
       if (error) throw error;
-      return (data?.value as ActiveContext) ?? { event_id: null, day_id: null, slot_id: null };
+      return (data?.value as unknown as ActiveContext) ?? { event_id: null, day_id: null, slot_id: null };
     },
   });
 }
