@@ -39,19 +39,21 @@ export default function GetQr() {
   };
 
   return (
-    <div className="min-h-screen bg-background ccs-circuit-bg flex items-center justify-center p-4">
-      <Card className="w-full max-w-md overflow-hidden border-0 shadow-festive relative">
-        <Bunting variant="light" />
-        <div className="relative bg-gradient-hero text-primary-foreground p-6 flex items-center gap-3 overflow-hidden">
-          <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
-          <div className="absolute inset-0 ccs-confetti" aria-hidden />
-          <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-flag-yellow/30 blur-2xl" aria-hidden />
-          <CcsLogo size={56} className="relative ring-4 ring-white/50 animate-float" />
-          <div className="relative">
-            <h1 className="font-display uppercase text-2xl tracking-wide drop-shadow">🎉 Get your QR</h1>
-            <p className="text-xs opacity-90">CCS Student Council · Event Attendance</p>
+    <div className="min-h-screen ccs-circuit-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="ccs-pennants animate-sway mb-2" aria-hidden />
+        <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
+          <div className="relative bg-gradient-hero text-primary-foreground p-6 flex items-center gap-3 overflow-hidden">
+            <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
+            <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-flag-yellow/30 blur-2xl" aria-hidden />
+            <div className="absolute -left-6 -bottom-8 w-32 h-32 rounded-full bg-flag-red/25 blur-2xl" aria-hidden />
+            <CcsLogo size={60} className="relative ring-4 ring-white/60 animate-float shadow-xl" />
+            <div className="relative">
+              <div className="text-[10px] uppercase tracking-[0.3em] opacity-80 font-semibold">Self-service</div>
+              <h1 className="font-display uppercase text-2xl tracking-wide drop-shadow">Get your QR</h1>
+              <p className="text-xs opacity-90 mt-0.5">CCS Student Council</p>
+            </div>
           </div>
-        </div>
         <CardContent className="p-5 space-y-4">
           {!result ? (
             <form onSubmit={lookup} className="space-y-3">
@@ -88,6 +90,7 @@ export default function GetQr() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
