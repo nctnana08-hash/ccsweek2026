@@ -90,6 +90,7 @@ export default function GetQr() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
