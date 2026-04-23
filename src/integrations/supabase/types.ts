@@ -263,6 +263,7 @@ export type Database = {
       }
     }
     Functions: {
+      hash_pins: { Args: { _pins: Json }; Returns: Json }
       lookup_student_for_qr: {
         Args: { _student_id: string }
         Returns: {
@@ -270,6 +271,10 @@ export type Database = {
           section: string
           student_id: string
         }[]
+      }
+      verify_pin_hash: {
+        Args: { _hash: string; _pin: string }
+        Returns: boolean
       }
     }
     Enums: {
