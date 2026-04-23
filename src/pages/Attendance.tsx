@@ -193,21 +193,24 @@ export default function Attendance() {
 
   return (
     <div className="p-3 md:p-6 space-y-3 max-w-4xl mx-auto">
-      <Card className="overflow-hidden border-0">
-        <Bunting />
-        <div className="bg-gradient-hero text-primary-foreground p-4 flex items-center gap-3">
-          <CcsLogo size={48} className="ring-2 ring-white/40" />
-          <div className="flex-1 min-w-0">
-            <h1 className="font-display uppercase text-lg md:text-xl tracking-wide">Attendance Scanner</h1>
+      <Card className="overflow-hidden border-0 shadow-festive">
+        <Bunting variant="light" />
+        <div className="relative bg-gradient-hero text-primary-foreground p-4 flex items-center gap-3 overflow-hidden">
+          <div className="absolute inset-0 ccs-sunburst opacity-50" aria-hidden />
+          <div className="absolute inset-0 ccs-confetti" aria-hidden />
+          <CcsLogo size={48} className="relative ring-2 ring-white/50 animate-float" />
+          <div className="relative flex-1 min-w-0">
+            <h1 className="font-display uppercase text-lg md:text-xl tracking-wide drop-shadow">Attendance Scanner</h1>
             <p className="text-xs opacity-90 truncate">
               {activeEvent?.event_name ?? "—"} › {activeDay?.day_label ?? "—"} › {activeSlot?.slot_label ?? "—"}
             </p>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="relative flex items-center gap-1.5">
             {online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4 text-flag-yellow" />}
             {pending > 0 && <Badge variant="secondary" className="text-xs">{pending} queued</Badge>}
           </div>
         </div>
+        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
       <Card className="p-3 grid grid-cols-3 gap-2">

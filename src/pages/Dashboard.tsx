@@ -54,15 +54,26 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-festive">
-        <Bunting />
-        <div className="bg-gradient-hero text-primary-foreground p-5 md:p-7 flex items-center gap-4">
-          <CcsLogo size={64} className="ring-2 ring-white/40" />
-          <div>
-            <h1 className="font-display uppercase text-2xl md:text-3xl tracking-wide">CCS Event Attendance</h1>
-            <p className="text-sm text-primary-foreground/90">College of Computer Studies · Student Council</p>
+      <Card className="overflow-hidden border-0 shadow-festive relative">
+        <Bunting variant="light" />
+        <div className="relative bg-gradient-hero text-primary-foreground p-6 md:p-8 overflow-hidden">
+          <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
+          <div className="absolute inset-0 ccs-confetti" aria-hidden />
+          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-flag-yellow/20 blur-2xl" aria-hidden />
+          <div className="absolute -left-8 -bottom-12 w-40 h-40 rounded-full bg-flag-red/30 blur-2xl" aria-hidden />
+          <div className="relative flex items-center gap-4">
+            <div className="animate-float">
+              <CcsLogo size={72} className="ring-4 ring-white/50 shadow-2xl" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] uppercase tracking-[0.25em] opacity-80 font-semibold">College of Computer Studies</div>
+              <h1 className="font-display uppercase text-3xl md:text-4xl tracking-wide drop-shadow-md">CCS Event Attendance</h1>
+              <p className="text-sm text-primary-foreground/90 mt-1">🎉 Celebrating tech, talent &amp; community</p>
+            </div>
           </div>
+          <div className="absolute inset-0 animate-shimmer pointer-events-none" aria-hidden />
         </div>
+        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

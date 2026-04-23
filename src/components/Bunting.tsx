@@ -1,3 +1,8 @@
-export function Bunting({ className = "" }: { className?: string }) {
-  return <div className={`ccs-bunting ${className}`} aria-hidden />;
+export function Bunting({ className = "", variant = "dark" }: { className?: string; variant?: "dark" | "light" }) {
+  return (
+    <div
+      className={`${variant === "light" ? "ccs-pennants-light" : "ccs-pennants"} animate-sway ${className}`}
+      aria-hidden
+    />
+  );
 }
