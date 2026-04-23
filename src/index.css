@@ -126,128 +126,76 @@
 }
 
 @layer components {
-  /* Triangle bunting flags - actual hanging pennants */
-  .ccs-bunting {
-    --flag-w: 22px;
-    height: 26px;
-    background-image:
-      linear-gradient(135deg, transparent 49%, hsl(var(--border)) 49% 51%, transparent 51%),
-      conic-gradient(from 180deg at 50% 0%,
-        hsl(var(--flag-red)) 0deg 72deg,
-        hsl(var(--flag-yellow)) 72deg 144deg,
-        hsl(var(--flag-blue)) 144deg 216deg,
-        hsl(var(--flag-green)) 216deg 288deg,
-        hsl(var(--flag-teal)) 288deg 360deg);
-    background-size: 100% 2px, var(--flag-w) 26px;
-    background-position: top left, 0 2px;
-    background-repeat: repeat-x;
-    -webkit-mask-image:
-      linear-gradient(#000 0 2px, transparent 2px),
-      linear-gradient(135deg, transparent 49%, #000 49%);
-    -webkit-mask-composite: source-over;
-    mask-image:
-      linear-gradient(#000, #000);
-    position: relative;
-  }
-  .ccs-bunting::before {
-    content: "";
-    position: absolute;
-    inset: 2px 0 0 0;
-    background: inherit;
-    background-size: var(--flag-w) 24px;
-    -webkit-mask: linear-gradient(180deg, #000 0, #000 1px, transparent 1px),
-      radial-gradient(circle at 50% -8px, transparent 14px, #000 14.5px);
-    -webkit-mask-composite: source-in;
-    mask: linear-gradient(180deg, transparent 0 1px, #000 1px),
-      conic-gradient(from 225deg at 50% 0%, #000 0 90deg, transparent 90deg 360deg);
-  }
-  /* Simpler reliable triangle pennants via SVG */
+  /* Refined triangle pennants — larger, spaced */
   .ccs-pennants {
-    height: 28px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28' viewBox='0 0 120 28'><line x1='0' y1='2' x2='120' y2='2' stroke='%23d6c4a8' stroke-width='1.5'/><polygon points='2,3 22,3 12,24' fill='hsl(0,80%25,55%25)'/><polygon points='26,3 46,3 36,24' fill='hsl(45,95%25,55%25)'/><polygon points='50,3 70,3 60,24' fill='hsl(210,80%25,50%25)'/><polygon points='74,3 94,3 84,24' fill='hsl(140,60%25,45%25)'/><polygon points='98,3 118,3 108,24' fill='hsl(180,50%25,45%25)'/></svg>");
+    height: 22px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='22' viewBox='0 0 180 22'><line x1='0' y1='1.5' x2='180' y2='1.5' stroke='hsl(20,30%25,30%25)' stroke-width='1' stroke-opacity='0.35'/><polygon points='6,2 30,2 18,20' fill='hsl(22,90%25,55%25)'/><polygon points='42,2 66,2 54,20' fill='hsl(45,90%25,55%25)'/><polygon points='78,2 102,2 90,20' fill='hsl(0,75%25,55%25)'/><polygon points='114,2 138,2 126,20' fill='hsl(210,75%25,50%25)'/><polygon points='150,2 174,2 162,20' fill='hsl(140,55%25,45%25)'/></svg>");
     background-repeat: repeat-x;
-    background-size: 120px 28px;
+    background-size: 180px 22px;
   }
   .ccs-pennants-light {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28' viewBox='0 0 120 28'><line x1='0' y1='2' x2='120' y2='2' stroke='rgba(255,255,255,0.5)' stroke-width='1.5'/><polygon points='2,3 22,3 12,24' fill='hsl(0,90%25,65%25)'/><polygon points='26,3 46,3 36,24' fill='hsl(45,100%25,65%25)'/><polygon points='50,3 70,3 60,24' fill='hsl(210,90%25,65%25)'/><polygon points='74,3 94,3 84,24' fill='hsl(140,70%25,55%25)'/><polygon points='98,3 118,3 108,24' fill='hsl(180,60%25,60%25)'/></svg>");
+    height: 22px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='22' viewBox='0 0 180 22'><line x1='0' y1='1.5' x2='180' y2='1.5' stroke='white' stroke-width='1' stroke-opacity='0.5'/><polygon points='6,2 30,2 18,20' fill='hsl(45,100%25,72%25)'/><polygon points='42,2 66,2 54,20' fill='white' fill-opacity='0.85'/><polygon points='78,2 102,2 90,20' fill='hsl(45,100%25,72%25)'/><polygon points='114,2 138,2 126,20' fill='white' fill-opacity='0.85'/><polygon points='150,2 174,2 162,20' fill='hsl(45,100%25,72%25)'/></svg>");
     background-repeat: repeat-x;
-    background-size: 120px 28px;
-    height: 28px;
+    background-size: 180px 22px;
   }
+  /* Ornamental divider with diamond center */
+  .ccs-divider {
+    height: 16px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='16' viewBox='0 0 120 16'><line x1='0' y1='8' x2='52' y2='8' stroke='hsl(22,90%25,55%25)' stroke-width='1' stroke-opacity='0.35'/><polygon points='60,3 65,8 60,13 55,8' fill='hsl(22,90%25,55%25)' fill-opacity='0.55'/><line x1='68' y1='8' x2='120' y2='8' stroke='hsl(22,90%25,55%25)' stroke-width='1' stroke-opacity='0.35'/></svg>");
+    background-repeat: repeat-x;
+    background-size: 120px 16px;
+  }
+  /* Warm dotted page backdrop with corner glows */
   .ccs-circuit-bg {
+    background-color: hsl(var(--background));
     background-image:
-      radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.10) 1px, transparent 0),
-      radial-gradient(circle at 60px 40px, hsl(var(--flag-yellow) / 0.06) 2px, transparent 3px),
-      radial-gradient(circle at 120px 90px, hsl(var(--flag-blue) / 0.05) 2px, transparent 3px);
-    background-size: 24px 24px, 180px 140px, 220px 180px;
+      radial-gradient(circle at 1px 1px, hsl(20 30% 30% / 0.08) 1px, transparent 0),
+      radial-gradient(ellipse 900px 500px at 50% -10%, hsl(var(--primary) / 0.10), transparent),
+      radial-gradient(ellipse 700px 400px at 100% 110%, hsl(var(--flag-yellow) / 0.10), transparent),
+      radial-gradient(ellipse 500px 300px at 0% 50%, hsl(var(--flag-red) / 0.05), transparent);
+    background-size: 22px 22px, 100% 100%, 100% 100%, 100% 100%;
+    background-attachment: fixed;
   }
-  /* Festive confetti dots overlay */
-  .ccs-confetti {
-    background-image:
-      radial-gradient(circle, hsl(var(--flag-yellow)) 2px, transparent 2.5px),
-      radial-gradient(circle, hsl(var(--flag-red)) 2px, transparent 2.5px),
-      radial-gradient(circle, hsl(var(--flag-blue)) 2px, transparent 2.5px),
-      radial-gradient(circle, hsl(var(--flag-green)) 2px, transparent 2.5px);
-    background-size: 80px 80px, 100px 100px, 120px 120px, 140px 140px;
-    background-position: 0 0, 40px 30px, 20px 60px, 70px 10px;
-    opacity: 0.35;
-  }
-  /* Sunburst rays for hero backdrops */
+  /* Sunburst rays — subtle */
   .ccs-sunburst {
     background-image: repeating-conic-gradient(
-      from 0deg at 50% 50%,
-      hsl(0 0% 100% / 0.10) 0deg 8deg,
-      transparent 8deg 16deg
+      from 0deg at 50% 100%,
+      hsl(0 0% 100% / 0.07) 0deg 6deg,
+      transparent 6deg 14deg
     );
   }
-  /* Festive card with subtle gradient border */
-  .ccs-festive-card {
-    position: relative;
-    background: hsl(var(--card));
-    border-radius: var(--radius);
+  /* Diagonal stripes pattern */
+  .ccs-stripes {
+    background-image: repeating-linear-gradient(
+      45deg,
+      hsl(var(--primary) / 0.05) 0 10px,
+      transparent 10px 20px
+    );
   }
-  .ccs-festive-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg,
-      hsl(var(--flag-red)),
-      hsl(var(--flag-yellow)),
-      hsl(var(--primary)),
-      hsl(var(--flag-blue)),
-      hsl(var(--flag-green)));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+  /* Festive bordered card with gradient stroke */
+  .ccs-festive-card {
+    background: hsl(var(--card));
+    border: 1px solid transparent;
+    background-image:
+      linear-gradient(hsl(var(--card)), hsl(var(--card))),
+      linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(var(--flag-yellow) / 0.5), hsl(var(--flag-red) / 0.4));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
   }
 }
 
 @layer utilities {
   @keyframes ccs-sway {
-    0%, 100% { transform: translateX(0) rotate(-1deg); }
-    50% { transform: translateX(2px) rotate(1deg); }
+    0%, 100% { transform: translateX(0) skewX(-1deg); }
+    50% { transform: translateX(3px) skewX(1deg); }
   }
-  .animate-sway { animation: ccs-sway 4s ease-in-out infinite; transform-origin: top center; }
-  @keyframes ccs-shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  .animate-shimmer {
-    background: linear-gradient(90deg,
-      transparent 0%,
-      hsl(0 0% 100% / 0.15) 50%,
-      transparent 100%);
-    background-size: 200% 100%;
-    animation: ccs-shimmer 3s ease-in-out infinite;
-  }
+  .animate-sway { animation: ccs-sway 5s ease-in-out infinite; transform-origin: top center; }
   @keyframes ccs-float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    50% { transform: translateY(-4px); }
   }
-  .animate-float { animation: ccs-float 3s ease-in-out infinite; }
+  .animate-float { animation: ccs-float 4s ease-in-out infinite; }
 }
 
 @layer utilities {
