@@ -26,22 +26,24 @@ export default function Events() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-5xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-festive">
-        <Bunting variant="light" />
+      <div className="ccs-pennants animate-sway -mx-4 md:-mx-6" aria-hidden />
+      <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
         <div className="relative bg-gradient-hero text-primary-foreground p-5 md:p-6 flex items-center gap-3 overflow-hidden">
           <div className="absolute inset-0 ccs-sunburst opacity-50" aria-hidden />
-          <div className="absolute inset-0 ccs-confetti" aria-hidden />
-          <h1 className="relative font-display uppercase text-2xl md:text-3xl tracking-wide flex-1 drop-shadow">🎊 Events</h1>
+          <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-flag-yellow/25 blur-3xl" aria-hidden />
+          <div className="relative flex-1">
+            <div className="text-[10px] uppercase tracking-[0.3em] opacity-80 font-semibold">Manage</div>
+            <h1 className="font-display uppercase text-2xl md:text-3xl tracking-wide drop-shadow">Events</h1>
+          </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="relative bg-white text-primary hover:bg-white/90 shadow-lg font-semibold">
+              <Button size="sm" className="relative bg-white text-primary hover:bg-white/95 shadow-lg font-semibold">
                 <Plus className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">New event</span>
               </Button>
             </DialogTrigger>
             <CreateEventDialog onCreate={async (e) => { await upsert.mutateAsync(e); toast.success("Event created"); setOpen(false); }} onClose={() => setOpen(false)} />
           </Dialog>
         </div>
-        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">
