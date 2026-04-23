@@ -54,7 +54,7 @@ export function AppSidebar() {
             )}
           </div>
         </div>
-        <div className="ccs-pennants" />
+        <div className="ccs-pennants animate-sway" />
       </SidebarHeader>
 
       <SidebarContent>

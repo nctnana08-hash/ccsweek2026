@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Trash2, ChevronRight, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Bunting } from "@/components/Bunting";
+
 import { PinDialog } from "@/components/PinDialog";
 import { usePins } from "@/hooks/useSettings";
 import { PINS_DEFAULT } from "@/lib/constants";
