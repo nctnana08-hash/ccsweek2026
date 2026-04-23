@@ -54,26 +54,24 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-festive relative">
-        <Bunting variant="light" />
+      <div className="ccs-pennants animate-sway -mx-4 md:-mx-6" aria-hidden />
+      <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
         <div className="relative bg-gradient-hero text-primary-foreground p-6 md:p-8 overflow-hidden">
-          <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
-          <div className="absolute inset-0 ccs-confetti" aria-hidden />
-          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-flag-yellow/20 blur-2xl" aria-hidden />
-          <div className="absolute -left-8 -bottom-12 w-40 h-40 rounded-full bg-flag-red/30 blur-2xl" aria-hidden />
-          <div className="relative flex items-center gap-4">
-            <div className="animate-float">
-              <CcsLogo size={72} className="ring-4 ring-white/50 shadow-2xl" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-[0.25em] opacity-80 font-semibold">College of Computer Studies</div>
-              <h1 className="font-display uppercase text-3xl md:text-4xl tracking-wide drop-shadow-md">CCS Event Attendance</h1>
-              <p className="text-sm text-primary-foreground/90 mt-1">🎉 Celebrating tech, talent &amp; community</p>
+          <div className="absolute inset-0 ccs-sunburst opacity-50" aria-hidden />
+          <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-flag-yellow/25 blur-3xl" aria-hidden />
+          <div className="absolute -left-8 -bottom-16 w-48 h-48 rounded-full bg-flag-red/25 blur-3xl" aria-hidden />
+          <div className="relative flex items-center gap-5">
+            <CcsLogo size={76} className="ring-4 ring-white/60 shadow-2xl animate-float" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] uppercase tracking-[0.35em] opacity-80 font-semibold mb-1">College of Computer Studies</div>
+              <h1 className="font-display uppercase text-3xl md:text-4xl tracking-wide drop-shadow-md leading-none">CCS Event Attendance</h1>
+              <div className="flex items-center gap-2 mt-2.5">
+                <span className="h-1 w-8 bg-flag-yellow rounded-full" aria-hidden />
+                <p className="text-sm text-primary-foreground/95 font-medium">Student Council · Festive Edition</p>
+              </div>
             </div>
           </div>
-          <div className="absolute inset-0 animate-shimmer pointer-events-none" aria-hidden />
         </div>
-        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
