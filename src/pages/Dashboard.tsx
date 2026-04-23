@@ -54,15 +54,26 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-festive">
-        <Bunting />
-        <div className="bg-gradient-hero text-primary-foreground p-5 md:p-7 flex items-center gap-4">
-          <CcsLogo size={64} className="ring-2 ring-white/40" />
-          <div>
-            <h1 className="font-display uppercase text-2xl md:text-3xl tracking-wide">CCS Event Attendance</h1>
-            <p className="text-sm text-primary-foreground/90">College of Computer Studies · Student Council</p>
+      <Card className="overflow-hidden border-0 shadow-festive relative">
+        <Bunting variant="light" />
+        <div className="relative bg-gradient-hero text-primary-foreground p-6 md:p-8 overflow-hidden">
+          <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
+          <div className="absolute inset-0 ccs-confetti" aria-hidden />
+          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-flag-yellow/20 blur-2xl" aria-hidden />
+          <div className="absolute -left-8 -bottom-12 w-40 h-40 rounded-full bg-flag-red/30 blur-2xl" aria-hidden />
+          <div className="relative flex items-center gap-4">
+            <div className="animate-float">
+              <CcsLogo size={72} className="ring-4 ring-white/50 shadow-2xl" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] uppercase tracking-[0.25em] opacity-80 font-semibold">College of Computer Studies</div>
+              <h1 className="font-display uppercase text-3xl md:text-4xl tracking-wide drop-shadow-md">CCS Event Attendance</h1>
+              <p className="text-sm text-primary-foreground/90 mt-1">🎉 Celebrating tech, talent &amp; community</p>
+            </div>
           </div>
+          <div className="absolute inset-0 animate-shimmer pointer-events-none" aria-hidden />
         </div>
+        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -123,11 +134,13 @@ function StatTile({ label, value, icon: Icon, accent }: { label: string; value: 
     yellow: "from-flag-yellow to-primary",
   }[accent];
   return (
-    <Card className="overflow-hidden">
-      <CardContent className={`p-4 bg-gradient-to-br ${bg} text-white`}>
-        <Icon className="h-5 w-5 mb-2 opacity-90" />
-        <div className="text-2xl font-display tabular-nums">{value}</div>
-        <div className="text-xs uppercase tracking-wider opacity-90">{label}</div>
+    <Card className="overflow-hidden border-0 shadow-card hover:shadow-festive transition-shadow">
+      <CardContent className={`relative p-4 bg-gradient-to-br ${bg} text-white overflow-hidden`}>
+        <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/15 blur-xl" aria-hidden />
+        <div className="absolute -left-2 -bottom-6 w-16 h-16 rounded-full bg-black/10 blur-lg" aria-hidden />
+        <Icon className="relative h-5 w-5 mb-2 opacity-90" />
+        <div className="relative text-3xl font-display tabular-nums drop-shadow">{value}</div>
+        <div className="relative text-[10px] uppercase tracking-[0.2em] opacity-90 font-semibold mt-0.5">{label}</div>
       </CardContent>
     </Card>
   );

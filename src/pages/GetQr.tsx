@@ -40,12 +40,15 @@ export default function GetQr() {
 
   return (
     <div className="min-h-screen bg-background ccs-circuit-bg flex items-center justify-center p-4">
-      <Card className="w-full max-w-md overflow-hidden border-0 shadow-festive">
-        <Bunting />
-        <div className="bg-gradient-hero text-primary-foreground p-5 flex items-center gap-3">
-          <CcsLogo size={56} className="ring-2 ring-white/40" />
-          <div>
-            <h1 className="font-display uppercase text-xl tracking-wide">Get your QR</h1>
+      <Card className="w-full max-w-md overflow-hidden border-0 shadow-festive relative">
+        <Bunting variant="light" />
+        <div className="relative bg-gradient-hero text-primary-foreground p-6 flex items-center gap-3 overflow-hidden">
+          <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
+          <div className="absolute inset-0 ccs-confetti" aria-hidden />
+          <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-flag-yellow/30 blur-2xl" aria-hidden />
+          <CcsLogo size={56} className="relative ring-4 ring-white/50 animate-float" />
+          <div className="relative">
+            <h1 className="font-display uppercase text-2xl tracking-wide drop-shadow">🎉 Get your QR</h1>
             <p className="text-xs opacity-90">CCS Student Council · Event Attendance</p>
           </div>
         </div>
