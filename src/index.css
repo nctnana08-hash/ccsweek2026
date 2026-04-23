@@ -125,22 +125,128 @@
 }
 
 @layer components {
+  /* Triangle bunting flags - actual hanging pennants */
   .ccs-bunting {
-    background-image: linear-gradient(
-      90deg,
-      hsl(var(--flag-red)) 0% 20%,
-      hsl(var(--flag-yellow)) 20% 40%,
-      hsl(var(--flag-blue)) 40% 60%,
-      hsl(var(--flag-green)) 60% 80%,
-      hsl(var(--flag-teal)) 80% 100%
-    );
-    background-size: 100% 100%;
-    height: 4px;
+    --flag-w: 22px;
+    height: 26px;
+    background-image:
+      linear-gradient(135deg, transparent 49%, hsl(var(--border)) 49% 51%, transparent 51%),
+      conic-gradient(from 180deg at 50% 0%,
+        hsl(var(--flag-red)) 0deg 72deg,
+        hsl(var(--flag-yellow)) 72deg 144deg,
+        hsl(var(--flag-blue)) 144deg 216deg,
+        hsl(var(--flag-green)) 216deg 288deg,
+        hsl(var(--flag-teal)) 288deg 360deg);
+    background-size: 100% 2px, var(--flag-w) 26px;
+    background-position: top left, 0 2px;
+    background-repeat: repeat-x;
+    -webkit-mask-image:
+      linear-gradient(#000 0 2px, transparent 2px),
+      linear-gradient(135deg, transparent 49%, #000 49%);
+    -webkit-mask-composite: source-over;
+    mask-image:
+      linear-gradient(#000, #000);
+    position: relative;
+  }
+  .ccs-bunting::before {
+    content: "";
+    position: absolute;
+    inset: 2px 0 0 0;
+    background: inherit;
+    background-size: var(--flag-w) 24px;
+    -webkit-mask: linear-gradient(180deg, #000 0, #000 1px, transparent 1px),
+      radial-gradient(circle at 50% -8px, transparent 14px, #000 14.5px);
+    -webkit-mask-composite: source-in;
+    mask: linear-gradient(180deg, transparent 0 1px, #000 1px),
+      conic-gradient(from 225deg at 50% 0%, #000 0 90deg, transparent 90deg 360deg);
+  }
+  /* Simpler reliable triangle pennants via SVG */
+  .ccs-pennants {
+    height: 28px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28' viewBox='0 0 120 28'><line x1='0' y1='2' x2='120' y2='2' stroke='%23d6c4a8' stroke-width='1.5'/><polygon points='2,3 22,3 12,24' fill='hsl(0,80%25,55%25)'/><polygon points='26,3 46,3 36,24' fill='hsl(45,95%25,55%25)'/><polygon points='50,3 70,3 60,24' fill='hsl(210,80%25,50%25)'/><polygon points='74,3 94,3 84,24' fill='hsl(140,60%25,45%25)'/><polygon points='98,3 118,3 108,24' fill='hsl(180,50%25,45%25)'/></svg>");
+    background-repeat: repeat-x;
+    background-size: 120px 28px;
+  }
+  .ccs-pennants-light {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28' viewBox='0 0 120 28'><line x1='0' y1='2' x2='120' y2='2' stroke='rgba(255,255,255,0.5)' stroke-width='1.5'/><polygon points='2,3 22,3 12,24' fill='hsl(0,90%25,65%25)'/><polygon points='26,3 46,3 36,24' fill='hsl(45,100%25,65%25)'/><polygon points='50,3 70,3 60,24' fill='hsl(210,90%25,65%25)'/><polygon points='74,3 94,3 84,24' fill='hsl(140,70%25,55%25)'/><polygon points='98,3 118,3 108,24' fill='hsl(180,60%25,60%25)'/></svg>");
+    background-repeat: repeat-x;
+    background-size: 120px 28px;
+    height: 28px;
   }
   .ccs-circuit-bg {
-    background-image: radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.08) 1px, transparent 0);
-    background-size: 24px 24px;
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.10) 1px, transparent 0),
+      radial-gradient(circle at 60px 40px, hsl(var(--flag-yellow) / 0.06) 2px, transparent 3px),
+      radial-gradient(circle at 120px 90px, hsl(var(--flag-blue) / 0.05) 2px, transparent 3px);
+    background-size: 24px 24px, 180px 140px, 220px 180px;
   }
+  /* Festive confetti dots overlay */
+  .ccs-confetti {
+    background-image:
+      radial-gradient(circle, hsl(var(--flag-yellow)) 2px, transparent 2.5px),
+      radial-gradient(circle, hsl(var(--flag-red)) 2px, transparent 2.5px),
+      radial-gradient(circle, hsl(var(--flag-blue)) 2px, transparent 2.5px),
+      radial-gradient(circle, hsl(var(--flag-green)) 2px, transparent 2.5px);
+    background-size: 80px 80px, 100px 100px, 120px 120px, 140px 140px;
+    background-position: 0 0, 40px 30px, 20px 60px, 70px 10px;
+    opacity: 0.35;
+  }
+  /* Sunburst rays for hero backdrops */
+  .ccs-sunburst {
+    background-image: repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      hsl(0 0% 100% / 0.10) 0deg 8deg,
+      transparent 8deg 16deg
+    );
+  }
+  /* Festive card with subtle gradient border */
+  .ccs-festive-card {
+    position: relative;
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+  }
+  .ccs-festive-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg,
+      hsl(var(--flag-red)),
+      hsl(var(--flag-yellow)),
+      hsl(var(--primary)),
+      hsl(var(--flag-blue)),
+      hsl(var(--flag-green)));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+@layer utilities {
+  @keyframes ccs-sway {
+    0%, 100% { transform: translateX(0) rotate(-1deg); }
+    50% { transform: translateX(2px) rotate(1deg); }
+  }
+  .animate-sway { animation: ccs-sway 4s ease-in-out infinite; transform-origin: top center; }
+  @keyframes ccs-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(0 0% 100% / 0.15) 50%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: ccs-shimmer 3s ease-in-out infinite;
+  }
+  @keyframes ccs-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .animate-float { animation: ccs-float 3s ease-in-out infinite; }
 }
 
 @layer utilities {
