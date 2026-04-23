@@ -134,11 +134,13 @@ function StatTile({ label, value, icon: Icon, accent }: { label: string; value: 
     yellow: "from-flag-yellow to-primary",
   }[accent];
   return (
-    <Card className="overflow-hidden">
-      <CardContent className={`p-4 bg-gradient-to-br ${bg} text-white`}>
-        <Icon className="h-5 w-5 mb-2 opacity-90" />
-        <div className="text-2xl font-display tabular-nums">{value}</div>
-        <div className="text-xs uppercase tracking-wider opacity-90">{label}</div>
+    <Card className="overflow-hidden border-0 shadow-card hover:shadow-festive transition-shadow">
+      <CardContent className={`relative p-4 bg-gradient-to-br ${bg} text-white overflow-hidden`}>
+        <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/15 blur-xl" aria-hidden />
+        <div className="absolute -left-2 -bottom-6 w-16 h-16 rounded-full bg-black/10 blur-lg" aria-hidden />
+        <Icon className="relative h-5 w-5 mb-2 opacity-90" />
+        <div className="relative text-3xl font-display tabular-nums drop-shadow">{value}</div>
+        <div className="relative text-[10px] uppercase tracking-[0.2em] opacity-90 font-semibold mt-0.5">{label}</div>
       </CardContent>
     </Card>
   );

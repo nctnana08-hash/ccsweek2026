@@ -41,17 +41,20 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <CcsLogo size={36} />
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="font-display uppercase text-sm tracking-wide text-sidebar-primary truncate">CCS</div>
-              <div className="text-[10px] text-muted-foreground truncate">Student Council</div>
-            </div>
-          )}
+      <SidebarHeader className="border-b border-sidebar-border p-0">
+        <div className="relative bg-gradient-hero text-primary-foreground overflow-hidden">
+          <div className="absolute inset-0 ccs-sunburst opacity-50" aria-hidden />
+          <div className="relative flex items-center gap-3 px-3 py-3">
+            <CcsLogo size={36} className="ring-2 ring-white/50 animate-float" />
+            {!collapsed && (
+              <div className="min-w-0">
+                <div className="font-display uppercase text-base tracking-wider truncate drop-shadow">CCS</div>
+                <div className="text-[10px] opacity-90 uppercase tracking-widest truncate">Student Council</div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="ccs-bunting" />
+        <div className="ccs-pennants" />
       </SidebarHeader>
 
       <SidebarContent>
