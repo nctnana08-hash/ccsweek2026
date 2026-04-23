@@ -1,6 +1,5 @@
 import { openDB, type IDBPDatabase } from "idb";
-import { supabase } from "@/integrations/supabase/client";
-import type { AttendanceRecord } from "@/lib/types";
+import { api } from "@/lib/api";
 
 const DB_NAME = "ccs-offline";
 const STORE = "pending_attendance";
@@ -17,10 +16,14 @@ function db() {
   return dbp;
 }
 
-export type PendingScan = Omit<AttendanceRecord, "id" | "scanned_at"> & {
+export interface PendingScan {
   local_id: string;
+  student_id: string;
+  event_id: string;
+  day_id: string;
+  slot_id: string;
   scanned_at: string;
-};
+}
 
 export async function queueScan(rec: PendingScan) {
   const d = await db();
@@ -39,10 +42,14 @@ export async function flushQueue(): Promise<number> {
   let synced = 0;
   for (const item of all) {
     const { local_id, ...rec } = item;
-    const { error } = await supabase.from("attendance_records").insert(rec as any);
-    if (!error || error.code === "23505") {
-      await d.delete(STORE, local_id);
-      synced += 1;
+    try {
+      const res = await api.recordAttendance(rec);
+      if (res.ok || res.duplicate) {
+        await d.delete(STORE, local_id);
+        synced += 1;
+      }
+    } catch {
+      // Leave in queue for next attempt
     }
   }
   return synced;

@@ -231,10 +231,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      students_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+          section: string | null
+          status: string | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          section?: string | null
+          status?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          section?: string | null
+          status?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      hash_pins: { Args: { _pins: Json }; Returns: Json }
+      lookup_student_for_qr: {
+        Args: { _student_id: string }
+        Returns: {
+          name: string
+          section: string
+          student_id: string
+        }[]
+      }
+      verify_pin_hash: {
+        Args: { _hash: string; _pin: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

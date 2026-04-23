@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { SECTIONS, PINS_DEFAULT } from "@/lib/constants";
-import { usePins } from "@/hooks/useSettings";
+import { SECTIONS } from "@/lib/constants";
 import { PinDialog } from "@/components/PinDialog";
 import { Plus, Trash2, Upload, QrCode } from "lucide-react";
 import { toast } from "sonner";
@@ -21,7 +20,7 @@ export default function Students() {
   const upsert = useUpsertStudent();
   const del = useDeleteStudents();
   const bulkInsert = useBulkInsertStudents();
-  const { data: pins } = usePins();
+  
   const [search, setSearch] = useState("");
   const [sectionFilter, setSectionFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -173,7 +172,7 @@ export default function Students() {
       <PinDialog
         open={pinOpen}
         onOpenChange={setPinOpen}
-        expectedPin={pins?.delete_confirm ?? PINS_DEFAULT.delete_confirm}
+        scope="delete_confirm"
         title="Confirm Delete"
         description={`Enter delete-confirm PIN to remove ${selected.size} student(s).`}
         onSuccess={() => { if (pinPurpose === "delete") confirmDelete(); }}

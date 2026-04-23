@@ -2,30 +2,66 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
+
+type Scope = "admin" | "date_override" | "delete_confirm" | "qr_checker";
 
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  expectedPin: string;
+  scope: Scope;
   title?: string;
   description?: string;
-  onSuccess: () => void;
+  /** Receives the issued admin token when scope === "admin", otherwise undefined. */
+  onSuccess: (token?: string) => void;
 }
 
-export function PinDialog({ open, onOpenChange, expectedPin, title = "Enter Admin PIN", description = "Enter your PIN to continue.", onSuccess }: Props) {
+export function PinDialog({
+  open,
+  onOpenChange,
+  scope,
+  title = "Enter PIN",
+  description = "Enter your PIN to continue.",
+  onSuccess,
+}: Props) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const submit = (e: React.FormEvent) => {
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === expectedPin) {
-      setPin(""); setError(""); onOpenChange(false); onSuccess();
-    } else {
-      setError("Incorrect PIN");
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await api.verifyPin(scope, pin);
+      if (!res.ok) {
+        setError("Incorrect PIN");
+        setBusy(false);
+        return;
+      }
+      setPin("");
+      setBusy(false);
+      onOpenChange(false);
+      onSuccess(res.token);
+    } catch (err: any) {
+      setError(err?.message ?? "Verification failed");
+      setBusy(false);
     }
   };
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { setPin(""); setError(""); } onOpenChange(o); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) {
+          setPin("");
+          setError("");
+        }
+        onOpenChange(o);
+      }}
+    >
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <div className="mx-auto h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center mb-2 shadow-festive">
@@ -41,13 +77,21 @@ export function PinDialog({ open, onOpenChange, expectedPin, title = "Enter Admi
             inputMode="numeric"
             pattern="[0-9]*"
             value={pin}
-            onChange={(e) => { setPin(e.target.value); setError(""); }}
+            onChange={(e) => {
+              setPin(e.target.value);
+              setError("");
+            }}
             placeholder="••••••••"
             className="text-center text-lg tracking-widest"
+            disabled={busy}
           />
           {error && <p className="text-destructive text-sm text-center">{error}</p>}
-          <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90" disabled={!pin}>
-            Unlock
+          <Button
+            type="submit"
+            className="w-full bg-gradient-primary hover:opacity-90"
+            disabled={!pin || busy}
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Unlock"}
           </Button>
         </form>
       </DialogContent>

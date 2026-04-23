@@ -3,49 +3,65 @@ import { ADMIN_SESSION_HOURS, ADMIN_SESSION_KEY } from "@/lib/constants";
 
 interface AdminState {
   unlocked: boolean;
+  token: string | null;
   expiresAt: number | null;
-  unlock: () => void;
+  unlock: (token: string, ttlSeconds?: number) => void;
   lock: () => void;
   hydrate: () => void;
 }
 
-const readSession = (): { expiresAt: number | null } => {
+interface StoredSession {
+  token: string;
+  expiresAt: number;
+}
+
+const readSession = (): StoredSession | null => {
   try {
     const raw = localStorage.getItem(ADMIN_SESSION_KEY);
-    if (!raw) return { expiresAt: null };
-    const parsed = JSON.parse(raw);
-    if (typeof parsed.expiresAt === "number" && parsed.expiresAt > Date.now()) {
-      return { expiresAt: parsed.expiresAt };
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredSession>;
+    if (
+      typeof parsed.token === "string" &&
+      typeof parsed.expiresAt === "number" &&
+      parsed.expiresAt > Date.now()
+    ) {
+      return { token: parsed.token, expiresAt: parsed.expiresAt };
     }
-    return { expiresAt: null };
+    return null;
   } catch {
-    return { expiresAt: null };
+    return null;
   }
 };
 
 export const useAdmin = create<AdminState>((set) => ({
   unlocked: false,
+  token: null,
   expiresAt: null,
-  unlock: () => {
-    const expiresAt = Date.now() + ADMIN_SESSION_HOURS * 60 * 60 * 1000;
-    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ expiresAt }));
-    set({ unlocked: true, expiresAt });
+  unlock: (token, ttlSeconds = ADMIN_SESSION_HOURS * 60 * 60) => {
+    const expiresAt = Date.now() + ttlSeconds * 1000;
+    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ token, expiresAt }));
+    set({ unlocked: true, token, expiresAt });
   },
   lock: () => {
     localStorage.removeItem(ADMIN_SESSION_KEY);
-    set({ unlocked: false, expiresAt: null });
+    set({ unlocked: false, token: null, expiresAt: null });
   },
   hydrate: () => {
-    const { expiresAt } = readSession();
-    set({ unlocked: !!expiresAt, expiresAt });
+    const s = readSession();
+    set({
+      unlocked: !!s,
+      token: s?.token ?? null,
+      expiresAt: s?.expiresAt ?? null,
+    });
   },
 }));
+
+// Convenience accessor for callers that aren't React components
+export const getAdminToken = (): string | null => useAdmin.getState().token;
 
 // Cross-tab sync
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (e) => {
-    if (e.key === ADMIN_SESSION_KEY) {
-      useAdmin.getState().hydrate();
-    }
+    if (e.key === ADMIN_SESSION_KEY) useAdmin.getState().hydrate();
   });
 }

@@ -11,8 +11,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 import { PinDialog } from "@/components/PinDialog";
-import { usePins } from "@/hooks/useSettings";
-import { PINS_DEFAULT } from "@/lib/constants";
 
 export default function Events() {
   const navigate = useNavigate();
@@ -20,7 +18,6 @@ export default function Events() {
   const upsert = useUpsertEvent();
   const del = useDeleteEvent();
   const [open, setOpen] = useState(false);
-  const { data: pins } = usePins();
   const [pinOpen, setPinOpen] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
 
@@ -74,7 +71,7 @@ export default function Events() {
       <PinDialog
         open={pinOpen}
         onOpenChange={setPinOpen}
-        expectedPin={pins?.delete_confirm ?? PINS_DEFAULT.delete_confirm}
+        scope="delete_confirm"
         title="Confirm Delete"
         description="This deletes the event and all its days, slots, and attendance records."
         onSuccess={async () => { if (toDelete) { await del.mutateAsync(toDelete); toast.success("Event deleted"); setToDelete(null); } }}

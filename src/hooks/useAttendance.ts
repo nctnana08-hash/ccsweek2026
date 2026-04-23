@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { AttendanceRecord } from "@/lib/types";
+import { api } from "@/lib/api";
 
 export interface AttendanceFilters {
   event_id?: string;
@@ -57,13 +58,20 @@ export function useRealtimeAttendance() {
   }, [qc]);
 }
 
+export interface RecordScanInput {
+  student_id: string;
+  event_id: string;
+  day_id: string;
+  slot_id: string;
+  scanned_at?: string;
+}
+
 export function useRecordScan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (rec: Omit<AttendanceRecord, "id" | "scanned_at"> & { scanned_at?: string }) => {
-      const { data, error } = await supabase.from("attendance_records").insert(rec as any).select().single();
-      if (error) throw error;
-      return data as AttendanceRecord;
+    mutationFn: async (rec: RecordScanInput) => {
+      const res = await api.recordAttendance(rec);
+      return res;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
   });

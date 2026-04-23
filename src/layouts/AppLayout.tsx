@@ -3,17 +3,14 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAdmin } from "@/stores/admin";
-import { usePins } from "@/hooks/useSettings";
 import { PinDialog } from "@/components/PinDialog";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
-import { PINS_DEFAULT } from "@/lib/constants";
 
 const ADMIN_ROUTES = ["/", "/events", "/students", "/records", "/absences", "/ipc", "/pins"];
 
 export default function AppLayout() {
   const { unlocked, hydrate } = useAdmin();
-  const { data: pins } = usePins();
   const [pinOpen, setPinOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,10 +55,12 @@ export default function AppLayout() {
         <PinDialog
           open={pinOpen}
           onOpenChange={setPinOpen}
-          expectedPin={pins?.admin ?? PINS_DEFAULT.admin}
+          scope="admin"
           title="Admin Unlock"
           description="Enter the Admin PIN to access management features."
-          onSuccess={() => useAdmin.getState().unlock()}
+          onSuccess={(token) => {
+            if (token) useAdmin.getState().unlock(token);
+          }}
         />
       </div>
     </SidebarProvider>
