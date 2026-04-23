@@ -193,16 +193,18 @@ export default function Attendance() {
 
   return (
     <div className="p-3 md:p-6 space-y-3 max-w-4xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-festive">
-        <Bunting variant="light" />
-        <div className="relative bg-gradient-hero text-primary-foreground p-4 flex items-center gap-3 overflow-hidden">
+      <div className="ccs-pennants animate-sway -mx-3 md:-mx-6" aria-hidden />
+      <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
+        <div className="relative bg-gradient-hero text-primary-foreground p-5 flex items-center gap-3 overflow-hidden">
           <div className="absolute inset-0 ccs-sunburst opacity-50" aria-hidden />
-          <div className="absolute inset-0 ccs-confetti" aria-hidden />
-          <CcsLogo size={48} className="relative ring-2 ring-white/50 animate-float" />
+          <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-flag-yellow/25 blur-2xl" aria-hidden />
+          <div className="absolute -left-6 -bottom-10 w-28 h-28 rounded-full bg-flag-red/20 blur-2xl" aria-hidden />
+          <CcsLogo size={52} className="relative ring-2 ring-white/60 animate-float shadow-xl" />
           <div className="relative flex-1 min-w-0">
-            <h1 className="font-display uppercase text-lg md:text-xl tracking-wide drop-shadow">Attendance Scanner</h1>
-            <p className="text-xs opacity-90 truncate">
-              {activeEvent?.event_name ?? "—"} › {activeDay?.day_label ?? "—"} › {activeSlot?.slot_label ?? "—"}
+            <div className="text-[10px] uppercase tracking-[0.3em] opacity-80 font-semibold">Officer Console</div>
+            <h1 className="font-display uppercase text-xl md:text-2xl tracking-wide drop-shadow">Attendance Scanner</h1>
+            <p className="text-xs opacity-90 truncate mt-0.5">
+              {activeEvent?.event_name ?? "—"} <span className="opacity-60">›</span> {activeDay?.day_label ?? "—"} <span className="opacity-60">›</span> {activeSlot?.slot_label ?? "—"}
             </p>
           </div>
           <div className="relative flex items-center gap-1.5">
@@ -210,10 +212,9 @@ export default function Attendance() {
             {pending > 0 && <Badge variant="secondary" className="text-xs">{pending} queued</Badge>}
           </div>
         </div>
-        <Bunting variant="dark" className="rotate-180" />
       </Card>
 
-      <Card className="p-3 grid grid-cols-3 gap-2">
+      <Card className="p-3 grid grid-cols-3 gap-2 ccs-festive-card border-0">
         <Select value={ctx?.event_id ?? ""} onValueChange={setEvent}>
           <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
           <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
@@ -229,27 +230,36 @@ export default function Attendance() {
       </Card>
 
       {!scanning ? (
-        <Card className="p-8 flex flex-col items-center gap-4 ccs-circuit-bg">
-          <ScanLine className="h-16 w-16 text-primary" />
-          <p className="text-center text-sm text-muted-foreground max-w-sm">
-            {!ctx?.slot_id ? "Pick an Event · Day · Slot above to begin." : "Tap Start to open the camera and begin scanning."}
-          </p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            <Button size="lg" disabled={!ctx?.slot_id} onClick={startScanner} className="bg-gradient-primary shadow-festive">
-              <Camera className="h-5 w-5 mr-2" />Start scanning
-            </Button>
-            {unlocked && (
-              <Button size="lg" variant="outline" disabled={!ctx?.slot_id} onClick={() => setManualOpen(true)}>
-                <Hand className="h-5 w-5 mr-2" />Manual entry
+        <Card className="relative overflow-hidden border-0 ccs-festive-card">
+          <div className="absolute inset-0 ccs-stripes" aria-hidden />
+          <div className="relative p-10 flex flex-col items-center gap-5">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-primary blur-2xl opacity-40 animate-pulse" aria-hidden />
+              <div className="relative h-24 w-24 rounded-full bg-gradient-primary flex items-center justify-center shadow-festive ring-4 ring-white">
+                <ScanLine className="h-12 w-12 text-white" />
+              </div>
+            </div>
+            <div className="ccs-divider w-48" aria-hidden />
+            <p className="text-center text-sm text-muted-foreground max-w-sm">
+              {!ctx?.slot_id ? "Pick an Event · Day · Slot above to begin." : "Tap Start to open the camera and begin scanning."}
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button size="lg" disabled={!ctx?.slot_id} onClick={startScanner} className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform">
+                <Camera className="h-5 w-5 mr-2" />Start scanning
               </Button>
+              {unlocked && (
+                <Button size="lg" variant="outline" disabled={!ctx?.slot_id} onClick={() => setManualOpen(true)}>
+                  <Hand className="h-5 w-5 mr-2" />Manual entry
+                </Button>
+              )}
+            </div>
+            {!unlocked && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 px-3 py-1.5 rounded-full bg-muted/60">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Officer view: scans show "✓ Recorded" without student names
+              </div>
             )}
           </div>
-          {!unlocked && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-              <AlertCircle className="h-3.5 w-3.5" />
-              Officer view: scans show "✓ Recorded" without student names
-            </div>
-          )}
         </Card>
       ) : (
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
