@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useEvents, useEventDays, useScanSlots } from "@/hooks/useEvents";
 import { useAttendance } from "@/hooks/useAttendance";
 import { useActiveContext } from "@/hooks/useSettings";
+import { useScanner } from "@/stores/scanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { AlertCircle, Activity, ScanLine } from "lucide-react";
+import { AlertCircle, Activity, ScanLine, Lock } from "lucide-react";
 import { CcsLogo } from "@/components/CcsLogo";
 import { Bunting } from "@/components/Bunting";
+import { PinDialog } from "@/components/PinDialog";
 
 export default function OfficerView() {
   const { data: ctx } = useActiveContext();
@@ -20,6 +23,8 @@ export default function OfficerView() {
     day_id: ctx?.day_id || undefined,
     slot_id: ctx?.slot_id || undefined,
   });
+  const { sessionToken, unlock } = useScanner();
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
 
   const activeEvent = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
   const activeDay = useMemo(() => days.find((d) => d.id === ctx?.day_id), [days, ctx]);
@@ -32,6 +37,12 @@ export default function OfficerView() {
       tableBodyRef.current.scrollTop = tableBodyRef.current.scrollHeight;
     }
   }, [records]);
+
+  const handleScannerUnlock = (token?: string) => {
+    if (token) {
+      unlock(token, 3600); // 1 hour session
+    }
+  };
 
   const recentRecords = useMemo(() => records.slice(-20).reverse(), [records]);
 
@@ -98,6 +109,28 @@ export default function OfficerView() {
         </Alert>
       ) : null}
 
+      {/* Scanner Control */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display uppercase tracking-wide text-sm mb-1">Scanner Status</h3>
+              <p className="text-xs text-muted-foreground">
+                {sessionToken ? "Scanner is unlocked and ready" : "Scanner is locked"}
+              </p>
+            </div>
+            <Button
+              onClick={() => setPinDialogOpen(true)}
+              variant={sessionToken ? "outline" : "default"}
+              className="gap-2"
+            >
+              <Lock className="h-4 w-4" />
+              {sessionToken ? "Unlock Again" : "Unlock Scanner"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Live Attendance Records */}
       <Card>
         <CardHeader className="pb-3">
@@ -160,6 +193,16 @@ export default function OfficerView() {
           To change what's being scanned, ask an admin.
         </AlertDescription>
       </Alert>
+
+      {/* PIN Dialog for Scanner Unlock */}
+      <PinDialog
+        open={pinDialogOpen}
+        onOpenChange={setPinDialogOpen}
+        scope="scanner_pin"
+        title="Unlock Scanner"
+        description="Enter the scanner PIN to start scanning."
+        onSuccess={handleScannerUnlock}
+      />
     </div>
   );
 }

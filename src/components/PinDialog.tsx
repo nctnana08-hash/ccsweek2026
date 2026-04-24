@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Lock, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 
-type Scope = "admin" | "date_override" | "delete_confirm" | "qr_checker";
+type Scope = "admin" | "date_override" | "delete_confirm" | "qr_checker" | "scanner_pin";
 
 interface Props {
   open: boolean;
@@ -13,7 +13,7 @@ interface Props {
   scope: Scope;
   title?: string;
   description?: string;
-  /** Receives the issued admin token when scope === "admin", otherwise undefined. */
+  /** Receives the issued token when scope === "admin" or "scanner_pin", otherwise undefined. */
   onSuccess: (token?: string) => void;
 }
 
