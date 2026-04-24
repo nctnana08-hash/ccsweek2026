@@ -35,8 +35,8 @@ export function PinDialog({
     setBusy(true);
     setError("");
     try {
-      const res = await api.verifyPin(scope, pin);
-      if (!res.ok) {
+      const res: any = await api.verifyPin(scope, pin);
+      if (!res?.ok) {
         setError("Incorrect PIN");
         setBusy(false);
         return;
@@ -44,7 +44,7 @@ export function PinDialog({
       setPin("");
       setBusy(false);
       onOpenChange(false);
-      onSuccess(res.token);
+      onSuccess(res.token ?? res.session_token);
     } catch (err: any) {
       setError(err?.message ?? "Verification failed");
       setBusy(false);
@@ -70,12 +70,21 @@ export function PinDialog({
           <DialogTitle className="text-center font-display uppercase tracking-wide">{title}</DialogTitle>
           <DialogDescription className="text-center">{description}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={submit} className="space-y-3">
+        <form onSubmit={submit} className="space-y-3" autoComplete="off">
+          {/* Decoy fields to defeat aggressive browser password managers */}
+          <input type="text" name="username" autoComplete="username" className="hidden" tabIndex={-1} aria-hidden />
+          <input type="password" name="password" autoComplete="new-password" className="hidden" tabIndex={-1} aria-hidden />
           <Input
             autoFocus
             type="password"
             inputMode="numeric"
             pattern="[0-9]*"
+            name="ccs-pin-code"
+            autoComplete="one-time-code"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
             value={pin}
             onChange={(e) => {
               setPin(e.target.value);

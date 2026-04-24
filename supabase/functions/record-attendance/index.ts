@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders, jsonResponse } from "../_shared/admin.ts";
 
+const APP_UTC_OFFSET = "+08:00";
+
 // Public endpoint — anyone running the scanner UI can record attendance.
 // Validates that the student exists, slot exists, and that the slot belongs
 // to the supplied event/day. Late-flag is computed server-side from slot config.
@@ -58,12 +60,12 @@ Deno.serve(async (req) => {
     if (!day || day.event_id !== event_id) return jsonResponse({ error: "invalid_day" }, 400);
 
     // 3. Compute late flag server-side
-    const scannedAt = input.scanned_at ? new Date(input.scanned_at) : new Date();
+    const parsedScanTime = input.scanned_at ? new Date(input.scanned_at) : null;
+    const scannedAt = parsedScanTime && !Number.isNaN(parsedScanTime.getTime()) ? parsedScanTime : new Date();
     let isLate = false;
     if (slot.late_cutoff_time) {
-      const [hh, mm, ss] = slot.late_cutoff_time.split(":").map(Number);
-      const cutoff = new Date(scannedAt);
-      cutoff.setHours(hh, mm, ss || 0, 0);
+      const [hh = 0, mm = 0, ss = 0] = slot.late_cutoff_time.split(":").map(Number);
+      const cutoff = new Date(`${day.date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss || 0).padStart(2, "0")}${APP_UTC_OFFSET}`);
       isLate = scannedAt.getTime() > cutoff.getTime();
     }
 

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock } from "lucide-react";
+import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
@@ -39,8 +39,16 @@ export default function Attendance() {
   const { data: events = [] } = useEvents();
   const { data: ctx } = useActiveContext();
   const updateCtx = useUpdateActiveContext();
-  const { data: days = [] } = useEventDays(ctx?.event_id ?? null);
-  const { data: slots = [] } = useScanSlots(ctx?.day_id ?? null);
+  // Draft context (admin edits locally, then explicitly saves to all devices)
+  const [draftCtx, setDraftCtx] = useState<{ event_id: string | null; day_id: string | null; slot_id: string | null }>({
+    event_id: null, day_id: null, slot_id: null,
+  });
+  // Sync draft from server context whenever it changes (e.g. on first load or from another device)
+  useEffect(() => {
+    if (ctx) setDraftCtx({ event_id: ctx.event_id, day_id: ctx.day_id, slot_id: ctx.slot_id });
+  }, [ctx?.event_id, ctx?.day_id, ctx?.slot_id]);
+  const { data: days = [] } = useEventDays(draftCtx.event_id ?? ctx?.event_id ?? null);
+  const { data: slots = [] } = useScanSlots(draftCtx.day_id ?? ctx?.day_id ?? null);
   const { data: students = [] } = useStudents();
   
   const recordScan = useRecordScan();
@@ -147,11 +155,10 @@ export default function Attendance() {
       event_id: ctx.event_id,
       day_id: ctx.day_id,
       slot_id: activeSlot.id,
-      scanned_at: new Date().toISOString(),
     };
 
     if (!navigator.onLine) {
-      await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
+      await queueScan({ ...scanInput, scanned_at: new Date().toISOString(), local_id: crypto.randomUUID() });
       setPending(await pendingCount());
       setFeedback({ kind: "ok", text: unlocked ? `${student.name} (queued offline)` : "✓ Recorded (offline)" });
       beep(880); setCounter((c) => c + 1); return;
@@ -181,7 +188,7 @@ export default function Attendance() {
         setFeedback({ kind: "unknown", text: "Unknown student" }); beep(220);
       } else {
         setFeedback({ kind: "unknown", text: "Save failed — queued offline" });
-        await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
+        await queueScan({ ...scanInput, scanned_at: new Date().toISOString(), local_id: crypto.randomUUID() });
         setPending(await pendingCount()); beep(220);
       }
     }
@@ -226,25 +233,35 @@ export default function Attendance() {
   };
 
   const setEvent = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
-      return;
-    }
-    updateCtx.mutate({ event_id: id, day_id: null, slot_id: null });
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx({ event_id: id, day_id: null, slot_id: null });
   };
   const setDay = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
-      return;
-    }
-    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: id, slot_id: null });
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx((d) => ({ ...d, day_id: id, slot_id: null }));
   };
   const setSlot = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx((d) => ({ ...d, slot_id: id }));
+  };
+
+  const draftDirty =
+    draftCtx.event_id !== (ctx?.event_id ?? null) ||
+    draftCtx.day_id !== (ctx?.day_id ?? null) ||
+    draftCtx.slot_id !== (ctx?.slot_id ?? null);
+
+  const saveContext = async () => {
+    if (!unlocked) { toast.error("Admin only"); return; }
+    if (!draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id) {
+      toast.error("Pick Event, Day and Slot first");
       return;
     }
-    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: ctx?.day_id ?? null, slot_id: id });
+    try {
+      await updateCtx.mutateAsync(draftCtx);
+      toast.success("Saved — synced to all devices");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to sync. Re-enter admin PIN and try again.");
+    }
   };
 
   const fbColor = feedback?.kind === "in" ? "bg-scan-in" : feedback?.kind === "out" ? "bg-scan-out"
@@ -273,19 +290,39 @@ export default function Attendance() {
         </div>
       </Card>
 
-      <Card className="p-3 grid grid-cols-3 gap-2 ccs-festive-card border-0">
-        <Select value={ctx?.event_id ?? ""} onValueChange={setEvent} disabled={!unlocked}>
-          <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
-          <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
-        </Select>
-        <Select value={ctx?.day_id ?? ""} onValueChange={setDay} disabled={!unlocked || !ctx?.event_id}>
-          <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-          <SelectContent>{days.map((d) => <SelectItem key={d.id} value={d.id}>{d.day_label}</SelectItem>)}</SelectContent>
-        </Select>
-        <Select value={ctx?.slot_id ?? ""} onValueChange={setSlot} disabled={!unlocked || !ctx?.day_id}>
-          <SelectTrigger><SelectValue placeholder="Slot" /></SelectTrigger>
-          <SelectContent>{slots.map((s) => <SelectItem key={s.id} value={s.id}>{s.slot_label}</SelectItem>)}</SelectContent>
-        </Select>
+      <Card className="p-3 space-y-2 ccs-festive-card border-0">
+        <div className="grid grid-cols-3 gap-2">
+          <Select value={draftCtx.event_id ?? ""} onValueChange={setEvent} disabled={!unlocked}>
+            <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
+            <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={draftCtx.day_id ?? ""} onValueChange={setDay} disabled={!unlocked || !draftCtx.event_id}>
+            <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+            <SelectContent>{days.map((d) => <SelectItem key={d.id} value={d.id}>{d.day_label}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={draftCtx.slot_id ?? ""} onValueChange={setSlot} disabled={!unlocked || !draftCtx.day_id}>
+            <SelectTrigger><SelectValue placeholder="Slot" /></SelectTrigger>
+            <SelectContent>{slots.map((s) => <SelectItem key={s.id} value={s.id}>{s.slot_label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        {unlocked && (
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex-1 text-xs text-muted-foreground">
+              {draftDirty
+                ? "Unsaved changes — click Save to sync to all devices."
+                : "Saved selection — click Save & Sync again to refresh all devices."}
+            </div>
+            <Button
+              size="sm"
+              onClick={saveContext}
+              disabled={updateCtx.isPending || !draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id}
+              className="bg-gradient-primary text-white shadow-festive"
+            >
+              {updateCtx.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
+              Save & Sync
+            </Button>
+          </div>
+        )}
       </Card>
 
       {!scanning ? (
@@ -305,7 +342,7 @@ export default function Attendance() {
             <div className="flex flex-wrap gap-2 justify-center">
               <Button 
                 size="lg" 
-                disabled={!ctx?.slot_id || isExpired()} 
+                disabled={!ctx?.slot_id} 
                 onClick={startScanner} 
                 className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform"
               >

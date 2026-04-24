@@ -85,7 +85,12 @@ export default function PinSettings() {
             <Input
               type="password"
               inputMode="numeric"
-              autoComplete="new-password"
+              autoComplete="one-time-code"
+              name={`ccs-pin-${k}`}
+              data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-bwignore="true"
               placeholder="Leave blank to keep current"
               value={draft[k]}
               onChange={(e) => setDraft({ ...draft, [k]: e.target.value })}

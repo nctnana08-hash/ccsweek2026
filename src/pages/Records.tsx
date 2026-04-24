@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
-import { format } from "date-fns";
 import { Bunting } from "@/components/Bunting";
 import { SECTIONS } from "@/lib/constants";
+import { formatRecordExportTime, formatRecordTime } from "@/lib/datetime";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
@@ -39,7 +39,7 @@ export default function Records() {
     if (!records.length) { toast.error("Nothing to export"); return; }
     const rows = records.map((r) => ({
       "Student ID": r.student_id, Name: r.name, Section: r.section,
-      Slot: r.slot_label, "Scanned At": format(new Date(r.scanned_at), "yyyy-MM-dd HH:mm:ss"),
+      Slot: r.slot_label, "Scanned At": formatRecordExportTime(r.scanned_at),
       Late: r.is_late ? "Yes" : "No",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -94,7 +94,7 @@ export default function Records() {
             <tbody>
               {paged.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
-                  <td className="px-3 py-2 text-xs tabular-nums">{format(new Date(r.scanned_at), "MMM d, HH:mm")}</td>
+                  <td className="px-3 py-2 text-xs tabular-nums">{formatRecordTime(r.scanned_at)}</td>
                   <td className="px-3 py-2"><div>{r.name}</div><div className="text-xs text-muted-foreground font-mono">{r.student_id}</div></td>
                   <td className="px-3 py-2 hidden md:table-cell text-xs">{r.section}</td>
                   <td className="px-3 py-2"><Badge variant="outline">{r.slot_label}</Badge></td>

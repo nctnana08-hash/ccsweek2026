@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bunting } from "@/components/Bunting";
 import { CcsLogo } from "@/components/CcsLogo";
 import { api } from "@/lib/api";
@@ -44,6 +45,7 @@ export default function GetQr() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ student: PublicStudent; qr: string } | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [downloadReminderOpen, setDownloadReminderOpen] = useState(false);
 
   const lookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +78,7 @@ export default function GetQr() {
         name: res.student.name,
         section: res.student.section,
       };
-      const qr = await generateQrDataUrl(buildQrPayload(student), 512);
+      const qr = await generateQrDataUrl(buildQrPayload(student), 768);
       setResult({ student, qr });
     } catch (err: any) {
       toast.error(err.message ?? "Lookup failed");
@@ -87,64 +89,72 @@ export default function GetQr() {
 
   const download = async () => {
     if (!result) return;
-    
-    // Create canvas with design
+    setDownloadReminderOpen(false);
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    
-    const size = 600;
-    const margin = 40;
-    const padding = 20;
-    
+
+    const size = 1100;          // overall card width (bigger)
+    const qrSize = 880;         // big QR for easy scanning
+    const headerH = 140;
+    const footerH = 180;
+
     canvas.width = size;
-    canvas.height = size + 140;
-    
+    canvas.height = headerH + qrSize + footerH;
+
     // Background
     ctx.fillStyle = "#f5e6d3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Orange gradient header
     const gradient = ctx.createLinearGradient(0, 0, size, 0);
-    gradient.addColorStop(0, "#de8936");
-    gradient.addColorStop(0.5, "#d97a2a");
-    gradient.addColorStop(1, "#bf6b25");
+    gradient.addColorStop(0, "#f59e0b");
+    gradient.addColorStop(0.5, "#ea7c1a");
+    gradient.addColorStop(1, "#c2410c");
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, 100);
-    
+    ctx.fillRect(0, 0, canvas.width, headerH);
+
     // Header text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 24px 'Oswald', sans-serif";
+    ctx.font = "bold 42px 'Oswald', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("CCS ATTENDANCE", size / 2, 35);
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillText("Student Council", size / 2, 60);
-    
-    // QR Code
+    ctx.fillText("CCS ATTENDANCE", size / 2, 60);
+    ctx.font = "20px 'Inter', sans-serif";
+    ctx.fillText("Student Council", size / 2, 95);
+
+    // Generate a large, low-density QR fresh for the download (less crammed than display)
+    const printQr = await generateQrDataUrl(buildQrPayload(result.student), 1024);
+
     const qrImg = new Image();
     qrImg.onload = () => {
-      const qrSize = 400;
       const qrX = (size - qrSize) / 2;
-      const qrY = 120;
+      const qrY = headerH + 10;
+      // White backing for quiet zone
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-      
+
       // Student info
       ctx.fillStyle = "#333333";
-      ctx.font = "bold 16px 'Oswald', sans-serif";
+      ctx.font = "bold 30px 'Oswald', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(result.student.name, size / 2, size + 100);
-      
+      ctx.fillText(result.student.name, size / 2, headerH + qrSize + 70);
+
       ctx.fillStyle = "#666666";
-      ctx.font = "12px 'Courier New', monospace";
-      ctx.fillText(result.student.student_id + " · " + result.student.section, size / 2, size + 125);
-      
-      // Download
+      ctx.font = "22px 'Courier New', monospace";
+      ctx.fillText(
+        result.student.student_id + " · " + result.student.section,
+        size / 2,
+        headerH + qrSize + 110,
+      );
+
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
       link.download = `CCS-QR-${result.student.student_id}.png`;
       link.click();
     };
-    qrImg.src = result.qr;
+    qrImg.src = printQr;
   };
 
   return (
@@ -203,27 +213,21 @@ export default function GetQr() {
                   <div className="text-xs opacity-90">CCS Student Council</div>
                 </div>
                 
-                <div className="p-4 bg-gradient-orange/5 flex justify-center">
-                  <div className="rounded-lg" style={{
-                    width: 280,
-                    height: 280,
-                    padding: 12,
-                    background: "linear-gradient(135deg, hsl(30 100% 60%) 0%, hsl(22 95% 55%) 50%, hsl(15 90% 50%) 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
+                <div className="p-4 bg-orange-50/50 flex justify-center">
+                  <div className="rounded-xl" style={{
+                    padding: 10,
+                    background: "linear-gradient(135deg, hsl(38 95% 55%) 0%, hsl(22 90% 50%) 60%, hsl(15 85% 42%) 100%)",
+                    boxShadow: "0 12px 30px rgba(194,65,12,0.25)"
                   }}>
                     <img
                       src={result.qr}
                       alt="Student QR"
-                      className="rounded"
-                      width={256}
-                      height={256}
+                      className="rounded-lg block bg-white"
+                      style={{ width: 320, height: 320 }}
                     />
                   </div>
                 </div>
-                
+
                 <div className="px-4 pb-4 bg-orange-50 rounded-b-lg">
                   <div className="font-display uppercase tracking-wide text-sm text-orange-900 mb-1">{result.student.name}</div>
                   <div className="text-xs text-orange-700 font-mono mb-3">
@@ -231,7 +235,7 @@ export default function GetQr() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 mb-2">
-                    <Button onClick={download} className="bg-gradient-orange text-white hover:opacity-90">
+                    <Button onClick={() => setDownloadReminderOpen(true)} className="bg-gradient-orange text-primary-foreground hover:opacity-90">
                       <Download className="h-4 w-4 mr-1.5" />
                       Download
                     </Button>
@@ -246,8 +250,9 @@ export default function GetQr() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      setResult(null);                      setStudentId("");
-                      setStudentName("");                      setStudentId("");
+                      setResult(null);
+                      setStudentId("");
+                      setStudentName("");
                     }}
                   >
                     Look up another
@@ -257,6 +262,19 @@ export default function GetQr() {
             )}
           </CardContent>
         </Card>
+        <Dialog open={downloadReminderOpen} onOpenChange={setDownloadReminderOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-display uppercase tracking-wide">Save your QR</DialogTitle>
+              <DialogDescription>
+                Please download and save this QR code for attendance during CCS Week.
+              </DialogDescription>
+            </DialogHeader>
+            <Button onClick={download} className="w-full bg-gradient-orange text-primary-foreground">
+              I Understand
+            </Button>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -28,13 +28,17 @@ export function useActiveContext() {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "app_settings",
           filter: "key=eq.active_scan_context",
         },
-        () => {
-          // Invalidate query to refetch when context changes on another device
+        (payload) => {
+          const nextValue = (payload.new as { value?: ActiveContext } | null)?.value;
+          if (nextValue) {
+            localStorage.setItem("ccs_active_context", JSON.stringify(nextValue));
+            qc.setQueryData(["app_settings", "active_scan_context"], nextValue);
+          }
           qc.invalidateQueries({ queryKey: ["app_settings", "active_scan_context"] });
         }
       )
@@ -47,11 +51,14 @@ export function useActiveContext() {
 
   return useQuery({
     queryKey: ["app_settings", "active_scan_context"],
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       // Fetch from backend (synced across all devices)
       try {
         const res = await api.getActiveContext();
         if (res.ok && res.context) {
+          localStorage.setItem("ccs_active_context", JSON.stringify(res.context));
           return res.context as ActiveContext;
         }
       } catch {
@@ -75,15 +82,17 @@ export function useUpdateActiveContext() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (ctx: ActiveContext) => {
-      // Persist locally so any device running the scanner has its own context
+      // Persist locally as a fast fallback for this device
       localStorage.setItem("ccs_active_context", JSON.stringify(ctx));
-      // Best-effort sync to backend if admin token is available
-      try {
-        await api.events.setActiveContext(ctx);
-      } catch {
-        /* admin-only; ignore when not unlocked */
-      }
+      // Push to backend so all other devices receive the change via realtime.
+      // This requires admin token — surface the error if it fails.
+      await api.events.setActiveContext(ctx);
+      return ctx;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["app_settings", "active_scan_context"] }),
+    onSuccess: (ctx) => {
+      // Optimistically update the cached value so this device reflects immediately
+      qc.setQueryData(["app_settings", "active_scan_context"], ctx);
+      qc.invalidateQueries({ queryKey: ["app_settings", "active_scan_context"] });
+    },
   });
 }

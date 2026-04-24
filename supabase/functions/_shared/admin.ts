@@ -63,7 +63,7 @@ export async function verifyAdminToken(token: string | null): Promise<AdminClaim
   const ok = await crypto.subtle.verify(
     "HMAC",
     key,
-    fromB64url(sig),
+    fromB64url(sig).buffer as ArrayBuffer,
     enc.encode(payload),
   );
   if (!ok) return null;
