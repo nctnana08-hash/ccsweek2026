@@ -19,14 +19,38 @@ export default function IpcExport() {
   const [signatories, setSignatories] = useState({ prepared: "", noted: "", approved: "" });
 
   const grid = useMemo(() => {
-    const presence = new Map<string, Set<string>>();
+    // Map: student_id + day_id -> { in: time, out: time }
+    const attendanceMap = new Map<string, { in?: string; out?: string }>();
     records.forEach((r) => {
-      if (!presence.has(r.student_id)) presence.set(r.student_id, new Set());
-      presence.get(r.student_id)!.add(r.day_id);
+      const key = `${r.student_id}|${r.day_id}`;
+      if (!attendanceMap.has(key)) attendanceMap.set(key, {});
+      const time = new Date(r.scanned_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+      if (r.slot_label.toLowerCase().includes("in")) {
+        attendanceMap.get(key)!.in = time;
+      } else if (r.slot_label.toLowerCase().includes("out")) {
+        attendanceMap.get(key)!.out = time;
+      }
     });
-    return students.filter((s) => s.status === "enrolled").map((s) => ({
-      ...s, days: days.map((d) => presence.get(s.student_id)?.has(d.id) ?? false),
+
+    // Group by section
+    const bySection = new Map<string, typeof students>();
+    students.filter((s) => s.status === "enrolled").forEach((s) => {
+      if (!bySection.has(s.section)) bySection.set(s.section, []);
+      bySection.get(s.section)!.push(s);
+    });
+
+    const result = Array.from(bySection.entries()).map(([section, sectionStudents]) => ({
+      section,
+      students: sectionStudents.map((s) => ({
+        ...s,
+        days: days.map((d) => {
+          const key = `${s.student_id}|${d.id}`;
+          return attendanceMap.get(key) ?? {};
+        }),
+      })),
     }));
+
+    return result;
   }, [records, students, days]);
 
   return (
@@ -51,45 +75,65 @@ export default function IpcExport() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden print:shadow-none print:border-none">
+      <Card className="overflow-hidden print:shadow-none print:border-none print:break-inside-avoid">
         <div className="bg-gradient-orange text-white p-4 flex items-center gap-3 print:p-6">
           <CcsLogo size={48} className="ring-2 ring-white/40" />
           <div>
-            <div className="font-display uppercase text-lg tracking-wide">CCS Attendance Report</div>
-            <div className="text-xs opacity-90">{events.find((e) => e.id === eventId)?.event_name ?? "Pick an event"}</div>
+            <div className="font-display uppercase text-lg tracking-wide text-black">CCS Attendance Report</div>
+            <div className="text-xs opacity-90 text-black">{events.find((e) => e.id === eventId)?.event_name ?? "Pick an event"}</div>
           </div>
         </div>
         <Bunting />
         <CardContent className="p-0 overflow-x-auto print:overflow-visible">
-          <table className="w-full text-xs print:text-[10px]">
-            <thead className="bg-muted/50 print:bg-orange-100">
-              <tr>
-                <th className="px-2 py-2 text-left print:px-3 print:py-2">Name</th>
-                <th className="px-2 py-2 text-left print:px-3 print:py-2">Section</th>
-                {days.map((d) => <th key={d.id} className="px-1 py-2 text-center w-10 print:px-2">{d.day_label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {grid.map((s) => (
-                <tr key={s.id} className="border-t print:border-orange-200">
-                  <td className="px-2 py-1.5 print:px-3">{s.name}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground print:px-3 print:text-gray-600">{s.section}</td>
-                  {s.days.map((p, i) => (
-                    <td key={i} className="px-1 py-1.5 text-center print:px-2">
-                      <span className={`inline-block w-5 h-5 rounded text-white text-[10px] leading-5 font-bold print:w-6 print:h-6 print:text-[11px] print:leading-6 ${p ? "bg-flag-blue print:bg-blue-600" : "bg-flag-red print:bg-red-600"}`}>{p ? "P" : "A"}</span>
-                    </td>
+          {grid.map((section) => (
+            <div key={section.section} className="print:page-break-inside-avoid">
+              <div className="bg-orange-100 px-4 py-2 font-semibold text-black border-b border-black print:border-b-2 print:border-black">
+                Section: {section.section}
+              </div>
+              <table className="w-full text-xs print:text-[10px]">
+                <thead className="bg-orange-50 print:bg-orange-100">
+                  <tr className="border-b border-black print:border-b-2 print:border-black">
+                    <th className="px-2 py-2 text-left print:px-3 print:py-2 text-black">Name</th>
+                    {days.map((d) => (
+                      <th key={d.id} className="px-2 py-2 text-center print:px-2 text-black border-l border-black print:border-l-2">
+                        {d.day_label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {section.students.map((s) => (
+                    <tr key={s.id} className="border-b border-black print:border-b print:border-black">
+                      <td className="px-2 py-1.5 print:px-3 text-black">{s.name}</td>
+                      {s.days.map((day, i) => (
+                        <td key={i} className="px-2 py-1.5 text-center text-black border-l border-black print:border-l print:border-black print:px-2">
+                          {day.in && day.out ? (
+                            <div className="text-[9px] print:text-[8px]">
+                              <div>In: {day.in}</div>
+                              <div>Out: {day.out}</div>
+                            </div>
+                          ) : day.in ? (
+                            <div className="text-[9px] print:text-[8px]">In: {day.in}</div>
+                          ) : day.out ? (
+                            <div className="text-[9px] print:text-[8px]">Out: {day.out}</div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-              {grid.length === 0 && <tr><td colSpan={2 + days.length} className="p-8 text-center text-muted-foreground">Pick an event to generate the report.</td></tr>}
-            </tbody>
-          </table>
+                </tbody>
+              </table>
+            </div>
+          ))}
+          {grid.length === 0 && <div className="p-8 text-center text-muted-foreground">Pick an event to generate the report.</div>}
         </CardContent>
         <div className="grid sm:grid-cols-3 gap-6 p-6 mt-6 text-xs print:p-8 print:gap-12 print:mt-12 print:text-[11px]">
           {(["prepared", "noted", "approved"] as const).map((k) => (
             <div key={k} className="text-center">
-              <div className="border-b border-foreground pb-1 mb-1 h-10 flex items-end justify-center font-medium print:h-12 print:pb-2 print:border-orange-800">{signatories[k]}</div>
-              <div className="text-muted-foreground uppercase tracking-wider print:text-gray-700">{k} by</div>
+              <div className="border-b-2 border-black pb-1 mb-1 h-10 flex items-end justify-center font-medium print:h-12 print:pb-2 text-black">{signatories[k]}</div>
+              <div className="text-black uppercase tracking-wider print:text-black">{k} by</div>
             </div>
           ))}
         </div>
