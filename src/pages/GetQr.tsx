@@ -16,8 +16,15 @@ interface PublicStudent {
   section: string;
 }
 
+// Simple fuzzy name matching: case-insensitive, removes extra spaces/punctuation
+function fuzzyMatchName(input: string, stored: string): boolean {
+  const normalize = (s: string) => s.toLowerCase().replace(/[.\s]+/g, "");
+  return normalize(input) === normalize(stored);
+}
+
 export default function GetQr() {
   const [studentId, setStudentId] = useState("");
+  const [studentName, setStudentName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ student: PublicStudent; qr: string } | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -27,9 +34,21 @@ export default function GetQr() {
     setLoading(true);
     setNotFound(false);
     setResult(null);
+    const trimmedId = studentId.trim();
+    const trimmedName = studentName.trim();
+    if (!trimmedId || !trimmedName) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await api.lookupQr(studentId.trim());
+      const res = await api.lookupQr(trimmedId);
       if (!res.ok || !res.student) {
+        setNotFound(true);
+        return;
+      }
+      // Check if name matches (fuzzy matching)
+      if (!fuzzyMatchName(trimmedName, res.student.name)) {
         setNotFound(true);
         return;
       }
@@ -131,7 +150,7 @@ export default function GetQr() {
           <CardContent className="p-5 space-y-4">
             {!result ? (
               <form onSubmit={lookup} className="space-y-3">
-                <p className="text-sm text-muted-foreground">Enter your student ID to download your QR code</p>
+                <p className="text-sm text-muted-foreground">Verify your identity to download your QR code</p>
                 <Input
                   required
                   autoFocus
@@ -140,17 +159,24 @@ export default function GetQr() {
                   onChange={(e) => setStudentId(e.target.value)}
                   maxLength={32}
                 />
+                <Input
+                  required
+                  placeholder="Full Name"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  maxLength={128}
+                />
                 <Button
                   type="submit"
-                  disabled={loading || !studentId.trim()}
+                  disabled={loading || !studentId.trim() || !studentName.trim()}
                   className="w-full bg-gradient-primary"
                 >
-                  {loading ? "Looking up…" : "Get my QR"}
+                  {loading ? "Verifying…" : "Get my QR"}
                 </Button>
                 {notFound && (
                   <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
                     <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span>Not enrolled — please ask your CCS coordinator to add you.</span>
+                    <span>No match found. Check your ID and name spelling, or ask your CCS coordinator to add you.</span>
                   </div>
                 )}
               </form>
@@ -197,8 +223,8 @@ export default function GetQr() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      setResult(null);
-                      setStudentId("");
+                      setResult(null);                      setStudentId("");
+                      setStudentName("");                      setStudentId("");
                     }}
                   >
                     Look up another

@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { ActiveContext } from "@/lib/types";
 import { api } from "@/lib/api";
 
@@ -17,11 +19,45 @@ export function useUpdatePins() {
 }
 
 export function useActiveContext() {
+  const qc = useQueryClient();
+
+  // Set up real-time subscription on mount
+  useEffect(() => {
+    const channel = supabase
+      .channel("app_settings")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "app_settings",
+          filter: "key=eq.active_scan_context",
+        },
+        () => {
+          // Invalidate query to refetch when context changes on another device
+          qc.invalidateQueries({ queryKey: ["app_settings", "active_scan_context"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [qc]);
+
   return useQuery({
     queryKey: ["app_settings", "active_scan_context"],
     queryFn: async () => {
-      // active_scan_context is also stored in app_settings, which is now backend-only.
-      // Mirror it to localStorage for the public scanner UI.
+      // Fetch from backend (synced across all devices)
+      try {
+        const res = await api.getActiveContext();
+        if (res.ok && res.context) {
+          return res.context as ActiveContext;
+        }
+      } catch {
+        /* fall through to local */
+      }
+      // Fallback to localStorage if backend fails
       const local = localStorage.getItem("ccs_active_context");
       if (local) {
         try {

@@ -39,6 +39,12 @@ export const api = {
       { student_id },
     ),
 
+  getActiveContext: () =>
+    invoke<{ ok: boolean; context?: { event_id: string | null; day_id: string | null; slot_id: string | null } }>(
+      "get-active-context",
+      {},
+    ),
+
   recordAttendance: (input: {
     student_id: string;
     event_id: string;
