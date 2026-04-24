@@ -19,17 +19,25 @@ function rateLimited(ip: string): boolean {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
 
   try {
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
     if (rateLimited(ip)) return jsonResponse({ error: "too_many_attempts" }, 429);
 
-    const body = await req.json().catch(() => ({}));
+    // Parse body carefully
+    let body: any;
+    try {
+      const text = await req.text();
+      body = text ? JSON.parse(text) : {};
+    } catch (e) {
+      return jsonResponse({ error: "bad_request", details: "Invalid JSON in request body" }, 400);
+    }
+    
     const scope: string = body?.scope;
     const pin: string = body?.pin;
     if (!scope || !pin || typeof scope !== "string" || typeof pin !== "string") {
-      return jsonResponse({ error: "bad_request", details: "Missing or invalid scope/pin" }, 400);
+      return jsonResponse({ error: "bad_request", details: "Missing scope or pin" }, 400);
     }
     // Trim and normalize PIN (allow spaces, but strip them)
     const cleanPin = pin.trim().replace(/\s+/g, "");
@@ -37,7 +45,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "bad_request", details: "PIN cannot be empty" }, 400);
     }
     const allowedScopes = ["admin", "date_override", "delete_confirm", "qr_checker", "scanner_pin"];
-    if (!allowedScopes.includes(scope)) return jsonResponse({ error: "bad_scope" }, 400);
+    if (!allowedScopes.includes(scope)) return jsonResponse({ error: "bad_scope", details: `Scope "${scope}" not allowed` }, 400);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
