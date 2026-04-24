@@ -50,12 +50,66 @@ export default function GetQr() {
     }
   };
 
-  const download = () => {
+  const download = async () => {
     if (!result) return;
-    const a = document.createElement("a");
-    a.href = result.qr;
-    a.download = `CCS-QR-${result.student.student_id}.png`;
-    a.click();
+    
+    // Create canvas with design
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const size = 600;
+    const margin = 40;
+    const padding = 20;
+    
+    canvas.width = size;
+    canvas.height = size + 140;
+    
+    // Background
+    ctx.fillStyle = "#f5e6d3";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Orange gradient header
+    const gradient = ctx.createLinearGradient(0, 0, size, 0);
+    gradient.addColorStop(0, "#de8936");
+    gradient.addColorStop(0.5, "#d97a2a");
+    gradient.addColorStop(1, "#bf6b25");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, 100);
+    
+    // Header text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px 'Oswald', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("CCS ATTENDANCE", size / 2, 35);
+    ctx.font = "12px 'Inter', sans-serif";
+    ctx.fillText("Student Council", size / 2, 60);
+    
+    // QR Code
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      const qrSize = 400;
+      const qrX = (size - qrSize) / 2;
+      const qrY = 120;
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+      
+      // Student info
+      ctx.fillStyle = "#333333";
+      ctx.font = "bold 16px 'Oswald', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(result.student.name, size / 2, size + 100);
+      
+      ctx.fillStyle = "#666666";
+      ctx.font = "12px 'Courier New', monospace";
+      ctx.fillText(result.student.student_id + " · " + result.student.section, size / 2, size + 125);
+      
+      // Download
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `CCS-QR-${result.student.student_id}.png`;
+      link.click();
+    };
+    qrImg.src = result.qr;
   };
 
   return (
@@ -63,7 +117,7 @@ export default function GetQr() {
       <div className="w-full max-w-md">
         <div className="ccs-pennants animate-sway mb-2" aria-hidden />
         <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
-          <div className="relative bg-gradient-hero text-primary-foreground p-6 flex items-center gap-3 overflow-hidden">
+          <div className="relative bg-gradient-orange text-primary-foreground p-6 flex items-center gap-3 overflow-hidden">
             <div className="absolute inset-0 ccs-sunburst opacity-60" aria-hidden />
             <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-flag-yellow/30 blur-2xl" aria-hidden />
             <div className="absolute -left-6 -bottom-8 w-32 h-32 rounded-full bg-flag-red/25 blur-2xl" aria-hidden />
@@ -101,38 +155,53 @@ export default function GetQr() {
                 )}
               </form>
             ) : (
-              <div className="space-y-3 text-center animate-fade-in">
-                <div className="font-display uppercase tracking-wide">{result.student.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {result.student.student_id} · {result.student.section}
+              <div className="space-y-4 text-center animate-fade-in">
+                <div className="bg-gradient-orange text-white p-4 rounded-t-lg">
+                  <div className="font-display uppercase tracking-wide text-base mb-1">Your QR Code</div>
+                  <div className="text-xs opacity-90">CCS Student Council</div>
                 </div>
-                <img
-                  src={result.qr}
-                  alt="Student QR"
-                  className="mx-auto rounded-lg border-4 border-primary/20"
-                  width={256}
-                  height={256}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={download} variant="outline">
-                    <Download className="h-4 w-4 mr-1.5" />
-                    Download
-                  </Button>
-                  <Button onClick={() => toast.info("Email delivery coming soon — please download for now")} variant="outline">
-                    <Mail className="h-4 w-4 mr-1.5" />
-                    Email
+                
+                <div className="p-4 bg-gradient-orange/5">
+                  <div className="bg-white rounded-lg p-4 inline-block shadow-md">
+                    <img
+                      src={result.qr}
+                      alt="Student QR"
+                      className="rounded border-2 border-orange-200"
+                      width={256}
+                      height={256}
+                    />
+                  </div>
+                </div>
+                
+                <div className="px-4 pb-4 bg-orange-50 rounded-b-lg">
+                  <div className="font-display uppercase tracking-wide text-sm text-orange-900 mb-1">{result.student.name}</div>
+                  <div className="text-xs text-orange-700 font-mono mb-3">
+                    {result.student.student_id} · {result.student.section}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <Button onClick={download} className="bg-gradient-orange text-white hover:opacity-90">
+                      <Download className="h-4 w-4 mr-1.5" />
+                      Download
+                    </Button>
+                    <Button onClick={() => toast.info("Email delivery coming soon — please download for now")} variant="outline">
+                      <Mail className="h-4 w-4 mr-1.5" />
+                      Email
+                    </Button>
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      setResult(null);
+                      setStudentId("");
+                    }}
+                  >
+                    Look up another
                   </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setResult(null);
-                    setStudentId("");
-                  }}
-                >
-                  Look up another
-                </Button>
               </div>
             )}
           </CardContent>

@@ -3,12 +3,10 @@ import { useEvents, useEventDays, useScanSlots } from "@/hooks/useEvents";
 import { useAttendance } from "@/hooks/useAttendance";
 import { useActiveContext } from "@/hooks/useSettings";
 import { useScanner } from "@/stores/scanner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { AlertCircle, Activity, ScanLine, Lock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Lock } from "lucide-react";
 import { CcsLogo } from "@/components/CcsLogo";
 import { Bunting } from "@/components/Bunting";
 import { PinDialog } from "@/components/PinDialog";
@@ -18,33 +16,14 @@ export default function OfficerView() {
   const { data: events = [] } = useEvents();
   const { data: days = [] } = useEventDays(ctx?.event_id ?? null);
   const { data: slots = [] } = useScanSlots(ctx?.day_id ?? null);
-  const { data: records = [] } = useAttendance({
-    event_id: ctx?.event_id || undefined,
-    day_id: ctx?.day_id || undefined,
-    slot_id: ctx?.slot_id || undefined,
-  });
   const { sessionToken, unlock } = useScanner();
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
-
-  const activeEvent = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
-  const activeDay = useMemo(() => days.find((d) => d.id === ctx?.day_id), [days, ctx]);
-  const activeSlot = useMemo(() => slots.find((s) => s.id === ctx?.slot_id), [slots, ctx]);
-
-  // Auto-scroll to latest records
-  const tableBodyRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (tableBodyRef.current) {
-      tableBodyRef.current.scrollTop = tableBodyRef.current.scrollHeight;
-    }
-  }, [records]);
 
   const handleScannerUnlock = (token?: string) => {
     if (token) {
       unlock(token, 3600); // 1 hour session
     }
   };
-
-  const recentRecords = useMemo(() => records.slice(-20).reverse(), [records]);
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
@@ -69,121 +48,51 @@ export default function OfficerView() {
         </div>
       </Card>
 
-      {/* Current Scanner Context */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
-            <div className="text-xs text-muted-foreground uppercase tracking-widest">Current Event</div>
-            <div className="font-display text-lg tracking-wide truncate text-center">
-              {activeEvent?.event_name ?? "—"}
+      {/* Scanner Control */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-6">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="font-display uppercase tracking-wide text-sm mb-1">Scanner Status</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                {sessionToken ? "Scanner is unlocked and ready to scan" : "Scanner is locked. Enter PIN to start scanning."}
+              </p>
+              <Button
+                onClick={() => setPinDialogOpen(true)}
+                className="w-full bg-gradient-orange text-white hover:opacity-90 gap-2"
+              >
+                <Lock className="h-4 w-4" />
+                {sessionToken ? "Unlock Again" : "Unlock Scanner & Start"}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
-            <div className="text-xs text-muted-foreground uppercase tracking-widest">Current Day</div>
-            <div className="font-display text-lg tracking-wide truncate text-center">
-              {activeDay?.day_label ?? "—"}
-            </div>
-          </CardContent>
-        </Card>
+            {ctx?.event_id && ctx?.day_id && ctx?.slot_id && (
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="text-center p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Event</div>
+                  <div className="font-semibold truncate">{events.find(e => e.id === ctx.event_id)?.event_name}</div>
+                </div>
+                <div className="text-center p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Day</div>
+                  <div className="font-semibold truncate">{days.find(d => d.id === ctx.day_id)?.day_label}</div>
+                </div>
+                <div className="text-center p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Slot</div>
+                  <div className="font-semibold truncate">{slots.find(s => s.id === ctx.slot_id)?.slot_label}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
-            <div className="text-xs text-muted-foreground uppercase tracking-widest">Current Slot</div>
-            <Badge variant="outline" className="text-base py-1 px-3">
-              {activeSlot?.slot_label ?? "—"}
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Alert if nothing is being scanned */}
       {!ctx?.event_id || !ctx?.day_id || !ctx?.slot_id ? (
         <Alert className="border-flag-yellow/50 bg-flag-yellow/10">
           <AlertCircle className="h-4 w-4 text-flag-yellow" />
           <AlertDescription className="text-sm">
-            No active scanning context. Admin must select an event, day, and slot to begin.
+            Admin is setting up the scanner. Please wait while they configure the event, day, and slot.
           </AlertDescription>
         </Alert>
       ) : null}
-
-      {/* Scanner Control */}
-      <Card className="border-0 shadow-card">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-display uppercase tracking-wide text-sm mb-1">Scanner Status</h3>
-              <p className="text-xs text-muted-foreground">
-                {sessionToken ? "Scanner is unlocked and ready" : "Scanner is locked"}
-              </p>
-            </div>
-            <Button
-              onClick={() => setPinDialogOpen(true)}
-              variant={sessionToken ? "outline" : "default"}
-              className="gap-2"
-            >
-              <Lock className="h-4 w-4" />
-              {sessionToken ? "Unlock Again" : "Unlock Scanner"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Live Attendance Records */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <Activity className="h-5 w-5 text-primary" />
-            <CardTitle className="font-display uppercase tracking-wide text-base">Live Attendance</CardTitle>
-            <Badge className="ml-auto bg-gradient-primary">{records.length} scans</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">Latest 20 scans • Read-only view • Auto-updates</p>
-        </CardHeader>
-        <CardContent className="p-0">
-          {records.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
-              <ScanLine className="h-8 w-8 opacity-30" />
-              <p>No scans yet for this context</p>
-            </div>
-          ) : (
-            <div 
-              ref={tableBodyRef}
-              className="overflow-x-auto overflow-y-auto max-h-96 divide-y"
-            >
-              <div className="sticky top-0 bg-muted/50 px-3 py-2 text-xs uppercase tracking-wider font-medium text-muted-foreground grid grid-cols-12 gap-2">
-                <div className="col-span-3">Time</div>
-                <div className="col-span-5">Student</div>
-                <div className="col-span-2">Slot</div>
-                <div className="col-span-2">Late</div>
-              </div>
-              {recentRecords.map((r) => (
-                <div 
-                  key={r.id} 
-                  className="px-3 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 text-sm border-b"
-                >
-                  <div className="col-span-3 text-xs tabular-nums text-muted-foreground">
-                    {format(new Date(r.scanned_at), "HH:mm:ss")}
-                  </div>
-                  <div className="col-span-5">
-                    <div className="font-medium truncate">{r.name}</div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">{r.student_id}</div>
-                  </div>
-                  <div className="col-span-2">
-                    <Badge variant="outline" className="text-xs">{r.slot_label}</Badge>
-                  </div>
-                  <div className="col-span-2">
-                    {r.is_late && (
-                      <Badge className="bg-flag-red text-xs">Late</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Information Alert */}
       <Alert>

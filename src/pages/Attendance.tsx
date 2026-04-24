@@ -3,18 +3,15 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useEvents, useEventDays, useScanSlots } from "@/hooks/useEvents";
 import { useStudents } from "@/hooks/useStudents";
 import { useActiveContext, useUpdateActiveContext } from "@/hooks/useSettings";
-import { useRealtimeAttendance, useRecordScan, useAttendance } from "@/hooks/useAttendance";
+import { useRealtimeAttendance, useRecordScan } from "@/hooks/useAttendance";
 import { useAdmin } from "@/stores/admin";
 import { useScanner } from "@/stores/scanner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock, Activity } from "lucide-react";
-import { format } from "date-fns";
+import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
@@ -44,11 +41,6 @@ export default function Attendance() {
   const { data: days = [] } = useEventDays(ctx?.event_id ?? null);
   const { data: slots = [] } = useScanSlots(ctx?.day_id ?? null);
   const { data: students = [] } = useStudents();
-  const { data: records = [] } = useAttendance({
-    event_id: ctx?.event_id || undefined,
-    day_id: ctx?.day_id || undefined,
-    slot_id: ctx?.slot_id || undefined,
-  });
   
   const recordScan = useRecordScan();
   useRealtimeAttendance();
@@ -257,20 +249,8 @@ export default function Attendance() {
   const fbColor = feedback?.kind === "in" ? "bg-scan-in" : feedback?.kind === "out" ? "bg-scan-out"
     : feedback?.kind === "dup" ? "bg-scan-dup" : feedback?.kind === "unknown" ? "bg-scan-unknown" : "bg-scan-in";
 
-  const activeSlot2 = useMemo(() => slots.find((s) => s.id === ctx?.slot_id), [slots, ctx]);
-  const activeEvent2 = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
-  const activeDay2 = useMemo(() => days.find((d) => d.id === ctx?.day_id), [days, ctx]);
-  const tableBodyRef = useRef<HTMLDivElement>(null);
-  const recentRecords = useMemo(() => records.slice(-20).reverse(), [records]);
-
-  useEffect(() => {
-    if (tableBodyRef.current && records.length > 0) {
-      tableBodyRef.current.scrollTop = tableBodyRef.current.scrollHeight;
-    }
-  }, [records]);
-
   return (
-    <div className="p-3 md:p-6 space-y-3 max-w-6xl mx-auto">
+    <div className="p-3 md:p-6 space-y-3 max-w-4xl mx-auto">
       <div className="ccs-pennants animate-sway -mx-3 md:-mx-6" aria-hidden />
       <Card className="overflow-hidden border-0 shadow-festive ccs-festive-card">
         <div className="relative bg-gradient-hero text-primary-foreground p-5 flex items-center gap-3 overflow-hidden">
@@ -287,7 +267,7 @@ export default function Attendance() {
           </div>
           <div className="relative flex items-center gap-1.5">
             {online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4 text-flag-yellow" />}
-            {pending > 0 && <Badge variant="secondary" className="text-xs">{pending} queued</Badge>}
+            {pending > 0 && <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">{pending} queued</span>}
           </div>
         </div>
       </Card>
@@ -312,24 +292,24 @@ export default function Attendance() {
           <div className="absolute inset-0 ccs-stripes" aria-hidden />
           <div className="relative p-10 flex flex-col items-center gap-5">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-primary blur-2xl opacity-40 animate-pulse" aria-hidden />
-              <div className="relative h-24 w-24 rounded-full bg-gradient-primary flex items-center justify-center shadow-festive ring-4 ring-white">
+              <div className="absolute inset-0 bg-gradient-orange blur-2xl opacity-40 animate-pulse" aria-hidden />
+              <div className="relative h-24 w-24 rounded-full bg-gradient-orange flex items-center justify-center shadow-festive ring-4 ring-white">
                 <ScanLine className="h-12 w-12 text-white" />
               </div>
             </div>
             <div className="ccs-divider w-48" aria-hidden />
             <p className="text-center text-sm text-muted-foreground max-w-sm">
-              {!ctx?.slot_id ? "Pick an Event · Day · Slot above to begin." : "Tap Start to open the camera and begin scanning."}
+              {!ctx?.slot_id ? "Admin is setting up scanning context. Please wait…" : "Ready to scan. Tap Start to open camera."}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               <Button 
                 size="lg" 
-                disabled={!ctx?.slot_id || isExpired()} 
+                disabled={!ctx?.slot_id} 
                 onClick={startScanner} 
-                className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform"
+                className="bg-gradient-orange text-white hover:opacity-90 shadow-festive transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {locked ? <Lock className="h-5 w-5 mr-2" /> : <Camera className="h-5 w-5 mr-2" />}
-                {locked ? "Unlock Scanner" : "Start scanning"}
+                {locked ? "Unlock & Start" : "Start Scanning"}
               </Button>
               {unlocked && (
                 <Button size="lg" variant="outline" disabled={!ctx?.slot_id} onClick={() => setManualOpen(true)}>
@@ -361,7 +341,7 @@ export default function Attendance() {
               <div className="font-display uppercase tracking-wide truncate">{activeSlot?.slot_label}</div>
               <div className="text-xs opacity-90 truncate">{activeEvent?.event_name} · {activeDay?.day_label}</div>
             </div>
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">{counter} scanned</Badge>
+            <span className="bg-white/20 text-white border border-white/30 px-2 py-1 rounded text-sm">{counter} scanned</span>
           </div>
           <div className="flex-1 relative bg-black">
             <div id={containerId} className="w-full h-full [&_video]:object-cover [&_video]:!w-full [&_video]:!h-full" />
@@ -415,60 +395,6 @@ export default function Attendance() {
         description="Enter the PIN to activate the scanner for 1 hour."
         onSuccess={handlePinSuccess}
       />
-
-      {/* Live Attendance Monitor */}
-      <Card className="border-0 shadow-card">
-        <CardHeader className="pb-3 bg-gradient-orange text-white rounded-t-lg">
-          <div className="flex items-center gap-3">
-            <Activity className="h-5 w-5" />
-            <CardTitle className="font-display uppercase tracking-wide text-base">Live Attendance Monitor</CardTitle>
-            <Badge className="ml-auto bg-white/20 text-white border-white/30">{records.length} scans</Badge>
-          </div>
-          <p className="text-xs opacity-90 mt-2">Latest 20 scans • Auto-updates</p>
-        </CardHeader>
-        <CardContent className="p-0">
-          {records.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
-              <ScanLine className="h-8 w-8 opacity-30" />
-              <p>No scans yet for this context</p>
-            </div>
-          ) : (
-            <div 
-              ref={tableBodyRef}
-              className="overflow-x-auto overflow-y-auto max-h-96 divide-y"
-            >
-              <div className="sticky top-0 bg-muted/50 px-3 py-2 text-xs uppercase tracking-wider font-medium text-muted-foreground grid grid-cols-12 gap-2">
-                <div className="col-span-3">Time</div>
-                <div className="col-span-5">Student</div>
-                <div className="col-span-2">Slot</div>
-                <div className="col-span-2">Late</div>
-              </div>
-              {recentRecords.map((r) => (
-                <div 
-                  key={r.id} 
-                  className="px-3 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 text-sm border-b"
-                >
-                  <div className="col-span-3 text-xs tabular-nums text-muted-foreground">
-                    {format(new Date(r.scanned_at), "HH:mm:ss")}
-                  </div>
-                  <div className="col-span-5">
-                    <div className="font-medium truncate">{r.name}</div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">{r.student_id}</div>
-                  </div>
-                  <div className="col-span-2">
-                    <Badge variant="outline" className="text-xs">{r.slot_label}</Badge>
-                  </div>
-                  <div className="col-span-2">
-                    {r.is_late && (
-                      <Badge className="bg-flag-red text-xs">Late</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
