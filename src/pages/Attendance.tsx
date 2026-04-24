@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
 import { CcsLogo } from "@/components/CcsLogo";
+import { PinDialog } from "@/components/PinDialog";
 import { api } from "@/lib/api";
 
 
@@ -51,9 +52,9 @@ export default function Attendance() {
   const [online, setOnline] = useState(navigator.onLine);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualSearch, setManualSearch] = useState("");
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [scannerExpireTimer, setScannerExpireTimer] = useState<NodeJS.Timeout | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const scannerStartupRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownRef = useRef(0);
   const containerId = "ccs-qr-reader";
 
@@ -186,13 +187,19 @@ export default function Attendance() {
   };
 
   const startScanner = async () => {
-    await doStartScanner();
+    // If already has valid session, start immediately
+    if (sessionToken && !isExpired() && !locked) {
+      await doStartScanner();
+      return;
+    }
+    // If locked or expired, show PIN dialog
+    setPinDialogOpen(true);
   };
 
   const doStartScanner = async () => {
     setScanning(true); 
     setCounter(0);
-    scannerStartupRef.current = setTimeout(async () => {
+    setTimeout(async () => {
       try {
         const q = new Html5Qrcode(containerId, { verbose: false });
         scannerRef.current = q;
@@ -205,8 +212,14 @@ export default function Attendance() {
     }, 100);
   };
 
+  const handlePinSuccess = async (token?: string) => {
+    if (token) {
+      unlock(token);
+    }
+    await doStartScanner();
+  };
+
   const stopScanner = async () => {
-    if (scannerStartupRef.current) clearTimeout(scannerStartupRef.current);
     try { await scannerRef.current?.stop(); await scannerRef.current?.clear(); } catch {}
     scannerRef.current = null; setScanning(false); setFeedback(null);
   };
@@ -373,6 +386,15 @@ export default function Attendance() {
           </Command>
         </DialogContent>
       </Dialog>
+
+      <PinDialog
+        open={pinDialogOpen}
+        onOpenChange={setPinDialogOpen}
+        scope="scanner_pin"
+        title="Unlock Scanner"
+        description="Enter the PIN to activate the scanner for 1 hour."
+        onSuccess={handlePinSuccess}
+      />
     </div>
   );
 }
