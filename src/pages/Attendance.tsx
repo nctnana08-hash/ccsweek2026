@@ -9,6 +9,7 @@ import { useScanner } from "@/stores/scanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock } from "lucide-react";
@@ -267,7 +268,7 @@ export default function Attendance() {
           </div>
           <div className="relative flex items-center gap-1.5">
             {online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4 text-flag-yellow" />}
-            {pending > 0 && <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">{pending} queued</span>}
+            {pending > 0 && <Badge variant="secondary" className="text-xs">{pending} queued</Badge>}
           </div>
         </div>
       </Card>
@@ -292,24 +293,24 @@ export default function Attendance() {
           <div className="absolute inset-0 ccs-stripes" aria-hidden />
           <div className="relative p-10 flex flex-col items-center gap-5">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-orange blur-2xl opacity-40 animate-pulse" aria-hidden />
-              <div className="relative h-24 w-24 rounded-full bg-gradient-orange flex items-center justify-center shadow-festive ring-4 ring-white">
+              <div className="absolute inset-0 bg-gradient-primary blur-2xl opacity-40 animate-pulse" aria-hidden />
+              <div className="relative h-24 w-24 rounded-full bg-gradient-primary flex items-center justify-center shadow-festive ring-4 ring-white">
                 <ScanLine className="h-12 w-12 text-white" />
               </div>
             </div>
             <div className="ccs-divider w-48" aria-hidden />
             <p className="text-center text-sm text-muted-foreground max-w-sm">
-              {!ctx?.slot_id ? "Admin is setting up scanning context. Please wait…" : "Ready to scan. Tap Start to open camera."}
+              {!ctx?.slot_id ? "Pick an Event · Day · Slot above to begin." : "Tap Start to open the camera and begin scanning."}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               <Button 
                 size="lg" 
-                disabled={!ctx?.slot_id} 
+                disabled={!ctx?.slot_id || isExpired()} 
                 onClick={startScanner} 
-                className="bg-gradient-orange text-white hover:opacity-90 shadow-festive transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform"
               >
                 {locked ? <Lock className="h-5 w-5 mr-2" /> : <Camera className="h-5 w-5 mr-2" />}
-                {locked ? "Unlock & Start" : "Start Scanning"}
+                {locked ? "Unlock Scanner" : "Start scanning"}
               </Button>
               {unlocked && (
                 <Button size="lg" variant="outline" disabled={!ctx?.slot_id} onClick={() => setManualOpen(true)}>
@@ -341,7 +342,7 @@ export default function Attendance() {
               <div className="font-display uppercase tracking-wide truncate">{activeSlot?.slot_label}</div>
               <div className="text-xs opacity-90 truncate">{activeEvent?.event_name} · {activeDay?.day_label}</div>
             </div>
-            <span className="bg-white/20 text-white border border-white/30 px-2 py-1 rounded text-sm">{counter} scanned</span>
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">{counter} scanned</Badge>
           </div>
           <div className="flex-1 relative bg-black">
             <div id={containerId} className="w-full h-full [&_video]:object-cover [&_video]:!w-full [&_video]:!h-full" />
