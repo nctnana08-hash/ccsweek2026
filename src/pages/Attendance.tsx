@@ -55,6 +55,7 @@ export default function Attendance() {
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [scannerExpireTimer, setScannerExpireTimer] = useState<NodeJS.Timeout | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerStartupRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownRef = useRef(0);
   const containerId = "ccs-qr-reader";
 
@@ -199,7 +200,7 @@ export default function Attendance() {
   const doStartScanner = async () => {
     setScanning(true); 
     setCounter(0);
-    setTimeout(async () => {
+    scannerStartupRef.current = setTimeout(async () => {
       try {
         const q = new Html5Qrcode(containerId, { verbose: false });
         scannerRef.current = q;
@@ -220,6 +221,7 @@ export default function Attendance() {
   };
 
   const stopScanner = async () => {
+    if (scannerStartupRef.current) clearTimeout(scannerStartupRef.current);
     try { await scannerRef.current?.stop(); await scannerRef.current?.clear(); } catch {}
     scannerRef.current = null; setScanning(false); setFeedback(null);
   };
