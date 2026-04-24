@@ -51,11 +51,19 @@ export interface ActiveContext {
   day_id: string | null;
   slot_id: string | null;
 }
+export interface ScannerSession {
+  id: string;
+  session_token: string;
+  created_at: string;
+  expires_at: string;
+  locked: boolean;
+}
 export interface PinSet {
   admin: string;
   date_override: string;
   delete_confirm: string;
   qr_checker: string;
+  scanner_pin: string;
 }
 export interface QrPayload {
   system: "ccs_system";

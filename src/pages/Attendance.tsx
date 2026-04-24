@@ -5,17 +5,21 @@ import { useStudents } from "@/hooks/useStudents";
 import { useActiveContext, useUpdateActiveContext } from "@/hooks/useSettings";
 import { useRealtimeAttendance, useRecordScan } from "@/hooks/useAttendance";
 import { useAdmin } from "@/stores/admin";
+import { useScanner } from "@/stores/scanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle } from "lucide-react";
+import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
 import { CcsLogo } from "@/components/CcsLogo";
+import { PinDialog } from "@/components/PinDialog";
+import { api } from "@/lib/api";
+
 
 type Feedback = { kind: "in" | "out" | "dup" | "unknown" | "ok"; text: string } | null;
 
@@ -31,6 +35,7 @@ const beep = (freq: number, ms = 120) => {
 
 export default function Attendance() {
   const { unlocked } = useAdmin();
+  const { sessionToken, locked, expiresAt, isExpired, unlock, lock, endSession, hydrate } = useScanner();
   const { data: events = [] } = useEvents();
   const { data: ctx } = useActiveContext();
   const updateCtx = useUpdateActiveContext();
@@ -48,9 +53,44 @@ export default function Attendance() {
   const [online, setOnline] = useState(navigator.onLine);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualSearch, setManualSearch] = useState("");
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [scannerExpireTimer, setScannerExpireTimer] = useState<number | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const cooldownRef = useRef(0);
   const containerId = "ccs-qr-reader";
+
+  // Hydrate scanner session on mount
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  // Check if scanner session is expired
+  useEffect(() => {
+    if (scanning && isExpired()) {
+      stopScanner();
+      toast.error("Scanner session expired");
+    }
+  }, [scanning, isExpired]);
+
+  // Timer for scanner expiration
+  useEffect(() => {
+    if (!sessionToken || !expiresAt || !scanning) {
+      if (scannerExpireTimer) clearInterval(scannerExpireTimer);
+      return;
+    }
+    
+    const timer = setInterval(() => {
+      const timeLeft = expiresAt - Date.now();
+      if (timeLeft <= 0) {
+        stopScanner();
+        lock();
+        toast.error("Scanner session locked - PIN required to unlock");
+      }
+    }, 1000);
+    
+    setScannerExpireTimer(timer);
+    return () => clearInterval(timer);
+  }, [sessionToken, expiresAt, scanning, lock]);
 
   const activeSlot = useMemo(() => slots.find((s) => s.id === ctx?.slot_id), [slots, ctx]);
   const activeEvent = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
@@ -120,6 +160,11 @@ export default function Attendance() {
     try {
       const res = await recordScan.mutateAsync(scanInput);
       if (res.duplicate) {
+        // If it's an "out" scan and already recorded, mark as duplicate and don't record
+        if (activeSlot.slot_type === "out") {
+          setFeedback({ kind: "dup", text: unlocked ? `${student.name} · cannot re-scan out` : "✓ Already checked out" });
+          beep(440); return;
+        }
         setFeedback({ kind: "dup", text: unlocked ? `${student.name} · already recorded` : "✓ Already recorded" });
         beep(440); return;
       }
@@ -143,7 +188,18 @@ export default function Attendance() {
   };
 
   const startScanner = async () => {
-    setScanning(true); setCounter(0);
+    // If already has valid session, start immediately
+    if (sessionToken && !isExpired() && !locked) {
+      await doStartScanner();
+      return;
+    }
+    // If locked or expired, show PIN dialog
+    setPinDialogOpen(true);
+  };
+
+  const doStartScanner = async () => {
+    setScanning(true); 
+    setCounter(0);
     setTimeout(async () => {
       try {
         const q = new Html5Qrcode(containerId, { verbose: false });
@@ -156,14 +212,40 @@ export default function Attendance() {
       }
     }, 100);
   };
+
+  const handlePinSuccess = async (token?: string) => {
+    if (token) {
+      unlock(token);
+    }
+    await doStartScanner();
+  };
+
   const stopScanner = async () => {
     try { await scannerRef.current?.stop(); await scannerRef.current?.clear(); } catch {}
     scannerRef.current = null; setScanning(false); setFeedback(null);
   };
 
-  const setEvent = (id: string) => updateCtx.mutate({ event_id: id, day_id: null, slot_id: null });
-  const setDay = (id: string) => updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: id, slot_id: null });
-  const setSlot = (id: string) => updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: ctx?.day_id ?? null, slot_id: id });
+  const setEvent = (id: string) => {
+    if (!unlocked) {
+      toast.error("Only admins can change the scanner context");
+      return;
+    }
+    updateCtx.mutate({ event_id: id, day_id: null, slot_id: null });
+  };
+  const setDay = (id: string) => {
+    if (!unlocked) {
+      toast.error("Only admins can change the scanner context");
+      return;
+    }
+    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: id, slot_id: null });
+  };
+  const setSlot = (id: string) => {
+    if (!unlocked) {
+      toast.error("Only admins can change the scanner context");
+      return;
+    }
+    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: ctx?.day_id ?? null, slot_id: id });
+  };
 
   const fbColor = feedback?.kind === "in" ? "bg-scan-in" : feedback?.kind === "out" ? "bg-scan-out"
     : feedback?.kind === "dup" ? "bg-scan-dup" : feedback?.kind === "unknown" ? "bg-scan-unknown" : "bg-scan-in";
@@ -192,15 +274,15 @@ export default function Attendance() {
       </Card>
 
       <Card className="p-3 grid grid-cols-3 gap-2 ccs-festive-card border-0">
-        <Select value={ctx?.event_id ?? ""} onValueChange={setEvent}>
+        <Select value={ctx?.event_id ?? ""} onValueChange={setEvent} disabled={!unlocked}>
           <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
           <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
         </Select>
-        <Select value={ctx?.day_id ?? ""} onValueChange={setDay} disabled={!ctx?.event_id}>
+        <Select value={ctx?.day_id ?? ""} onValueChange={setDay} disabled={!unlocked || !ctx?.event_id}>
           <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
           <SelectContent>{days.map((d) => <SelectItem key={d.id} value={d.id}>{d.day_label}</SelectItem>)}</SelectContent>
         </Select>
-        <Select value={ctx?.slot_id ?? ""} onValueChange={setSlot} disabled={!ctx?.day_id}>
+        <Select value={ctx?.slot_id ?? ""} onValueChange={setSlot} disabled={!unlocked || !ctx?.day_id}>
           <SelectTrigger><SelectValue placeholder="Slot" /></SelectTrigger>
           <SelectContent>{slots.map((s) => <SelectItem key={s.id} value={s.id}>{s.slot_label}</SelectItem>)}</SelectContent>
         </Select>
@@ -221,8 +303,14 @@ export default function Attendance() {
               {!ctx?.slot_id ? "Pick an Event · Day · Slot above to begin." : "Tap Start to open the camera and begin scanning."}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              <Button size="lg" disabled={!ctx?.slot_id} onClick={startScanner} className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform">
-                <Camera className="h-5 w-5 mr-2" />Start scanning
+              <Button 
+                size="lg" 
+                disabled={!ctx?.slot_id || isExpired()} 
+                onClick={startScanner} 
+                className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform"
+              >
+                {locked ? <Lock className="h-5 w-5 mr-2" /> : <Camera className="h-5 w-5 mr-2" />}
+                {locked ? "Unlock Scanner" : "Start scanning"}
               </Button>
               {unlocked && (
                 <Button size="lg" variant="outline" disabled={!ctx?.slot_id} onClick={() => setManualOpen(true)}>
@@ -230,6 +318,12 @@ export default function Attendance() {
                 </Button>
               )}
             </div>
+            {sessionToken && expiresAt && !isExpired() && (
+              <div className="flex items-center gap-2 text-xs text-green-700 mt-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
+                <Lock className="h-3.5 w-3.5" />
+                Scanner active for {Math.max(0, Math.ceil((expiresAt - Date.now()) / 60000))} min
+              </div>
+            )}
             {!unlocked && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 px-3 py-1.5 rounded-full bg-muted/60">
                 <AlertCircle className="h-3.5 w-3.5" />
@@ -293,6 +387,15 @@ export default function Attendance() {
           </Command>
         </DialogContent>
       </Dialog>
+
+      <PinDialog
+        open={pinDialogOpen}
+        onOpenChange={setPinDialogOpen}
+        scope="scanner_pin"
+        title="Unlock Scanner"
+        description="Enter the PIN to activate the scanner for 1 hour."
+        onSuccess={handlePinSuccess}
+      />
     </div>
   );
 }

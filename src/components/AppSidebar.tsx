@@ -17,6 +17,7 @@ const adminItems = [
   { title: "Students", url: "/students", icon: Users },
   { title: "Records", url: "/records", icon: ListChecks },
   { title: "Absences", url: "/absences", icon: UserX },
+  { title: "Officer View", url: "/officer-view", icon: ScanLine },
   { title: "IPC Export", url: "/ipc", icon: FileSpreadsheet },
   { title: "PIN Settings", url: "/pins", icon: KeyRound },
 ];

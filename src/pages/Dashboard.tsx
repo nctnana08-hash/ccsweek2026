@@ -107,14 +107,16 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y">
-            {sectionStats.map((s) => (
-              <div key={s.section} className="px-4 py-2.5 flex items-center gap-3">
-                <div className="font-medium text-sm flex-1 truncate">{s.section}</div>
-                <div className="text-xs text-muted-foreground tabular-nums w-24 text-right">{s.scanned} / {s.enrolled}</div>
-                <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-primary" style={{ width: `${Math.min(100, s.pct)}%` }} />
+            {sectionStats.filter(s => s.enrolled > 0).map((s) => (
+              <div key={s.section} className="px-3 md:px-4 py-3 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                <div className="font-medium text-sm md:flex-1 md:truncate truncate">{s.section}</div>
+                <div className="flex items-center gap-3 flex-1 md:flex-initial md:w-auto">
+                  <div className="flex-1 md:flex-initial md:w-32 h-2 bg-muted rounded-full overflow-hidden order-2 md:order-none">
+                    <div className="h-full bg-gradient-primary" style={{ width: `${Math.min(100, s.pct)}%` }} />
+                  </div>
+                  <div className="text-xs text-muted-foreground tabular-nums order-1 md:order-none md:w-24 md:text-right text-right">{s.scanned} / {s.enrolled}</div>
+                  <div className="text-sm font-semibold tabular-nums order-3 md:order-none md:w-12 md:text-right text-right">{s.pct}%</div>
                 </div>
-                <div className="text-sm font-semibold tabular-nums w-12 text-right">{s.pct}%</div>
               </div>
             ))}
           </div>

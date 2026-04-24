@@ -12,6 +12,7 @@ import Records from "./pages/Records";
 import Absences from "./pages/Absences";
 import IpcExport from "./pages/IpcExport";
 import PinSettings from "./pages/PinSettings";
+import OfficerView from "./pages/OfficerView";
 import GetQr from "./pages/GetQr";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/records" element={<Records />} />
             <Route path="/absences" element={<Absences />} />
+            <Route path="/officer-view" element={<OfficerView />} />
             <Route path="/ipc" element={<IpcExport />} />
             <Route path="/pins" element={<PinSettings />} />
           </Route>

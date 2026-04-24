@@ -27,8 +27,11 @@ async function invoke<T = unknown>(
 
 // ---- Public ----
 export const api = {
-  verifyPin: (scope: "admin" | "date_override" | "delete_confirm" | "qr_checker", pin: string) =>
+  verifyPin: (scope: "admin" | "date_override" | "delete_confirm" | "qr_checker" | "scanner_pin", pin: string) =>
     invoke<{ ok: boolean; token?: string; expires_in?: number }>("verify-pin", { scope, pin }),
+
+  verifyScannerPin: (pin: string) =>
+    invoke<{ ok: boolean; session_token?: string; expires_in?: number }>("verify-pin", { scope: "scanner_pin", pin }),
 
   lookupQr: (student_id: string) =>
     invoke<{ ok: boolean; student?: { student_id: string; name: string; section: string } }>(

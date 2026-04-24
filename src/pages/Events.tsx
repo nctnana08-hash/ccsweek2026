@@ -20,6 +20,12 @@ export default function Events() {
   const [open, setOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredEvents = events.filter(e =>
+    e.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-5xl mx-auto">
@@ -43,8 +49,15 @@ export default function Events() {
         </div>
       </Card>
 
+      <Input 
+        placeholder="Search events by name or ID..." 
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="max-w-xs"
+      />
+
       <div className="grid gap-3 sm:grid-cols-2">
-        {events.map((e) => (
+        {filteredEvents.map((e) => (
           <Card key={e.id} className="hover:shadow-festive transition-shadow cursor-pointer" onClick={() => navigate(`/events/${e.id}`)}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
@@ -63,6 +76,9 @@ export default function Events() {
             </CardContent>
           </Card>
         ))}
+        {filteredEvents.length === 0 && events.length > 0 && (
+          <Card><CardContent className="p-10 text-center text-muted-foreground">No events match your search.</CardContent></Card>
+        )}
         {events.length === 0 && (
           <Card><CardContent className="p-10 text-center text-muted-foreground">No events yet. Create your first one to get started.</CardContent></Card>
         )}
