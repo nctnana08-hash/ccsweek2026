@@ -53,7 +53,7 @@ export default function Attendance() {
   const [manualOpen, setManualOpen] = useState(false);
   const [manualSearch, setManualSearch] = useState("");
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
-  const [scannerExpireTimer, setScannerExpireTimer] = useState<number | null>(null);
+  const [scannerExpireTimer, setScannerExpireTimer] = useState<NodeJS.Timeout | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const cooldownRef = useRef(0);
   const containerId = "ccs-qr-reader";
