@@ -77,9 +77,7 @@ export default function GetQr() {
           <CardContent className="p-5 space-y-4">
             {!result ? (
               <form onSubmit={lookup} className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Enter your Student ID to retrieve your personal QR code.
-                </p>
+                <p className="text-sm text-muted-foreground">Enter your student ID to download your QR code</p>
                 <Input
                   required
                   autoFocus

@@ -17,7 +17,6 @@ const adminItems = [
   { title: "Students", url: "/students", icon: Users },
   { title: "Records", url: "/records", icon: ListChecks },
   { title: "Absences", url: "/absences", icon: UserX },
-  { title: "Officer View", url: "/officer-view", icon: ScanLine },
   { title: "IPC Export", url: "/ipc", icon: FileSpreadsheet },
   { title: "PIN Settings", url: "/pins", icon: KeyRound },
 ];
@@ -26,11 +25,18 @@ const officerItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const { unlocked, lock } = useAdmin();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+
+  const handleNavClick = () => {
+    // Close sidebar on mobile after navigation
+    if (state === "expanded") {
+      toggleSidebar();
+    }
+  };
 
   const linkClass = (active: boolean) =>
     cn(
@@ -66,7 +72,7 @@ export function AppSidebar() {
               {officerItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={linkClass(isActive(item.url))}>
+                    <NavLink to={item.url} onClick={handleNavClick} className={linkClass(isActive(item.url))}>
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -93,7 +99,7 @@ export function AppSidebar() {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={linkClass(isActive(item.url))}>
+                      <NavLink to={item.url} onClick={handleNavClick} className={linkClass(isActive(item.url))}>
                         <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>

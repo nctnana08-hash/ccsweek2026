@@ -30,7 +30,7 @@ export default function IpcExport() {
   }, [records, students, days]);
 
   return (
-    <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto print:p-0 print:space-y-0 print:max-w-none">
       <Card className="overflow-hidden border-0 print:hidden">
         <Bunting />
         <div className="p-4 md:p-5 flex items-center gap-3">
@@ -51,8 +51,8 @@ export default function IpcExport() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="bg-gradient-hero text-primary-foreground p-4 flex items-center gap-3">
+      <Card className="overflow-hidden print:shadow-none print:border-none">
+        <div className="bg-gradient-orange text-white p-4 flex items-center gap-3 print:p-6">
           <CcsLogo size={48} className="ring-2 ring-white/40" />
           <div>
             <div className="font-display uppercase text-lg tracking-wide">CCS Attendance Report</div>
@@ -60,23 +60,23 @@ export default function IpcExport() {
           </div>
         </div>
         <Bunting />
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="bg-muted/50">
+        <CardContent className="p-0 overflow-x-auto print:overflow-visible">
+          <table className="w-full text-xs print:text-[10px]">
+            <thead className="bg-muted/50 print:bg-orange-100">
               <tr>
-                <th className="px-2 py-2 text-left">Name</th>
-                <th className="px-2 py-2 text-left">Section</th>
-                {days.map((d) => <th key={d.id} className="px-1 py-2 text-center w-10">{d.day_label}</th>)}
+                <th className="px-2 py-2 text-left print:px-3 print:py-2">Name</th>
+                <th className="px-2 py-2 text-left print:px-3 print:py-2">Section</th>
+                {days.map((d) => <th key={d.id} className="px-1 py-2 text-center w-10 print:px-2">{d.day_label}</th>)}
               </tr>
             </thead>
             <tbody>
               {grid.map((s) => (
-                <tr key={s.id} className="border-t">
-                  <td className="px-2 py-1.5">{s.name}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{s.section}</td>
+                <tr key={s.id} className="border-t print:border-orange-200">
+                  <td className="px-2 py-1.5 print:px-3">{s.name}</td>
+                  <td className="px-2 py-1.5 text-muted-foreground print:px-3 print:text-gray-600">{s.section}</td>
                   {s.days.map((p, i) => (
-                    <td key={i} className="px-1 py-1.5 text-center">
-                      <span className={`inline-block w-5 h-5 rounded text-white text-[10px] leading-5 font-bold ${p ? "bg-flag-blue" : "bg-flag-red"}`}>{p ? "P" : "A"}</span>
+                    <td key={i} className="px-1 py-1.5 text-center print:px-2">
+                      <span className={`inline-block w-5 h-5 rounded text-white text-[10px] leading-5 font-bold print:w-6 print:h-6 print:text-[11px] print:leading-6 ${p ? "bg-flag-blue print:bg-blue-600" : "bg-flag-red print:bg-red-600"}`}>{p ? "P" : "A"}</span>
                     </td>
                   ))}
                 </tr>
@@ -85,11 +85,11 @@ export default function IpcExport() {
             </tbody>
           </table>
         </CardContent>
-        <div className="grid sm:grid-cols-3 gap-6 p-6 mt-6 text-xs">
+        <div className="grid sm:grid-cols-3 gap-6 p-6 mt-6 text-xs print:p-8 print:gap-12 print:mt-12 print:text-[11px]">
           {(["prepared", "noted", "approved"] as const).map((k) => (
             <div key={k} className="text-center">
-              <div className="border-b border-foreground pb-1 mb-1 h-10 flex items-end justify-center font-medium">{signatories[k]}</div>
-              <div className="text-muted-foreground uppercase tracking-wider">{k} by</div>
+              <div className="border-b border-foreground pb-1 mb-1 h-10 flex items-end justify-center font-medium print:h-12 print:pb-2 print:border-orange-800">{signatories[k]}</div>
+              <div className="text-muted-foreground uppercase tracking-wider print:text-gray-700">{k} by</div>
             </div>
           ))}
         </div>
