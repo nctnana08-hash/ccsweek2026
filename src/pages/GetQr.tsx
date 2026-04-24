@@ -16,10 +16,26 @@ interface PublicStudent {
   section: string;
 }
 
-// Simple fuzzy name matching: case-insensitive, removes extra spaces/punctuation
+// Forgiving name matching: case-insensitive, ignores spaces/punctuation/accents
 function fuzzyMatchName(input: string, stored: string): boolean {
-  const normalize = (s: string) => s.toLowerCase().replace(/[.\s]+/g, "");
-  return normalize(input) === normalize(stored);
+  const normalize = (s: string) => {
+    return s
+      .toLowerCase()
+      .replace(/[.\s\-,]/g, "") // Remove spaces, periods, hyphens, commas
+      .replace(/[áàâäã]/g, "a")
+      .replace(/[éèêë]/g, "e")
+      .replace(/[íìîï]/g, "i")
+      .replace(/[óòôöõ]/g, "o")
+      .replace(/[úùûü]/g, "u")
+      .replace(/[ç]/g, "c")
+      .replace(/[ñ]/g, "n");
+  };
+  const normalizedInput = normalize(input);
+  const normalizedStored = normalize(stored);
+  // Exact match or substring match (stored contains input or vice versa)
+  return normalizedInput === normalizedStored || 
+         normalizedStored.includes(normalizedInput) ||
+         normalizedInput.includes(normalizedStored);
 }
 
 export default function GetQr() {

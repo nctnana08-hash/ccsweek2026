@@ -26,10 +26,15 @@ Deno.serve(async (req) => {
     if (rateLimited(ip)) return jsonResponse({ error: "too_many_attempts" }, 429);
 
     const body = await req.json().catch(() => ({}));
-    const scope: string = body.scope;
-    const pin: string = body.pin;
+    const scope: string = body?.scope;
+    const pin: string = body?.pin;
     if (!scope || !pin || typeof scope !== "string" || typeof pin !== "string") {
-      return jsonResponse({ error: "bad_request" }, 400);
+      return jsonResponse({ error: "bad_request", details: "Missing or invalid scope/pin" }, 400);
+    }
+    // Trim and normalize PIN (allow spaces, but strip them)
+    const cleanPin = pin.trim().replace(/\s+/g, "");
+    if (!cleanPin) {
+      return jsonResponse({ error: "bad_request", details: "PIN cannot be empty" }, 400);
     }
     const allowedScopes = ["admin", "date_override", "delete_confirm", "qr_checker", "scanner_pin"];
     if (!allowedScopes.includes(scope)) return jsonResponse({ error: "bad_scope" }, 400);
@@ -52,7 +57,7 @@ Deno.serve(async (req) => {
 
     // Verify with crypt() via RPC
     const { data: cmp, error: cmpErr } = await admin.rpc("verify_pin_hash", {
-      _pin: pin,
+      _pin: cleanPin,
       _hash: hash,
     });
     if (cmpErr) return jsonResponse({ error: "verify_error" }, 500);
