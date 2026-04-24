@@ -28,11 +28,11 @@ export default function AppLayout() {
   }, [isAdminRoute, unlocked, navigate]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background ccs-circuit-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 border-b border-border bg-card/80 backdrop-blur flex items-center px-2 gap-2 sticky top-0 z-30">
+          <header className="h-12 border-b border-border bg-card/80 backdrop-blur flex items-center px-2 gap-2 sticky top-0 z-30 md:hidden">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>

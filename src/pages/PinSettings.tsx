@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 const labels: Record<string, { title: string; desc: string }> = {
   admin: { title: "Admin Unlock", desc: "Unlocks Dashboard, Students, Events, Records, Absences, IPC, manual entry." },
+  scanner_pin: { title: "Scanner PIN", desc: "Required to unlock and start scanning attendance." },
   date_override: { title: "Date Override", desc: "Required to record attendance outside the active event's day range." },
   delete_confirm: { title: "Delete Confirmation", desc: "Required when deleting students, attendance records, events, days, or slots." },
   qr_checker: { title: "QR Checker Access", desc: "Standalone utility to verify a roster against scans for a slot." },
@@ -21,6 +22,7 @@ export default function PinSettings() {
   // PINs are no longer client-readable. We only allow setting new values.
   const [draft, setDraft] = useState<Record<string, string>>({
     admin: "",
+    scanner_pin: "",
     date_override: "",
     delete_confirm: "",
     qr_checker: "",
@@ -45,7 +47,7 @@ export default function PinSettings() {
     try {
       await update.mutateAsync(cleaned);
       toast.success(`Updated ${Object.keys(cleaned).length} PIN(s)`);
-      setDraft({ admin: "", date_override: "", delete_confirm: "", qr_checker: "" });
+      setDraft({ admin: "", scanner_pin: "", date_override: "", delete_confirm: "", qr_checker: "" });
     } catch (e: any) {
       toast.error(e?.message ?? "Save failed");
     } finally {

@@ -162,14 +162,16 @@ export default function GetQr() {
                 </div>
                 
                 <div className="p-4 bg-gradient-orange/5">
-                  <div className="bg-white rounded-lg p-4 inline-block shadow-md">
-                    <img
-                      src={result.qr}
-                      alt="Student QR"
-                      className="rounded border-2 border-orange-200"
-                      width={256}
-                      height={256}
-                    />
+                  <div className="bg-gradient-orange p-1 rounded-lg inline-block shadow-md">
+                    <div className="bg-white rounded p-3">
+                      <img
+                        src={result.qr}
+                        alt="Student QR"
+                        className="rounded"
+                        width={256}
+                        height={256}
+                      />
+                    </div>
                   </div>
                 </div>
                 

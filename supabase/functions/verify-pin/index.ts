@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     if (!scope || !pin || typeof scope !== "string" || typeof pin !== "string") {
       return jsonResponse({ error: "bad_request" }, 400);
     }
-    const allowedScopes = ["admin", "date_override", "delete_confirm", "qr_checker"];
+    const allowedScopes = ["admin", "date_override", "delete_confirm", "qr_checker", "scanner_pin"];
     if (!allowedScopes.includes(scope)) return jsonResponse({ error: "bad_scope" }, 400);
 
     const admin = createClient(
@@ -58,10 +58,14 @@ Deno.serve(async (req) => {
     if (cmpErr) return jsonResponse({ error: "verify_error" }, 500);
     if (!cmp) return jsonResponse({ ok: false }, 200);
 
-    // Issue admin token only for "admin" scope; other scopes return ok flag.
+    // Issue admin token for "admin" scope; session token for "scanner_pin"; ok flag for others.
     if (scope === "admin") {
       const token = await issueAdminToken(8 * 60 * 60);
       return jsonResponse({ ok: true, token, expires_in: 8 * 60 * 60 });
+    }
+    if (scope === "scanner_pin") {
+      const token = await issueAdminToken(1 * 60 * 60);
+      return jsonResponse({ ok: true, session_token: token, expires_in: 1 * 60 * 60 });
     }
     return jsonResponse({ ok: true });
   } catch (e) {
