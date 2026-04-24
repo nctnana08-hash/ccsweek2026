@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
 import { CcsLogo } from "@/components/CcsLogo";
-import { PinDialog } from "@/components/PinDialog";
 import { api } from "@/lib/api";
 
 
@@ -52,7 +51,6 @@ export default function Attendance() {
   const [online, setOnline] = useState(navigator.onLine);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualSearch, setManualSearch] = useState("");
-  const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [scannerExpireTimer, setScannerExpireTimer] = useState<NodeJS.Timeout | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerStartupRef = useRef<NodeJS.Timeout | null>(null);
@@ -188,13 +186,7 @@ export default function Attendance() {
   };
 
   const startScanner = async () => {
-    // If already has valid session, start immediately
-    if (sessionToken && !isExpired() && !locked) {
-      await doStartScanner();
-      return;
-    }
-    // If locked or expired, show PIN dialog
-    setPinDialogOpen(true);
+    await doStartScanner();
   };
 
   const doStartScanner = async () => {
@@ -211,13 +203,6 @@ export default function Attendance() {
         setScanning(false);
       }
     }, 100);
-  };
-
-  const handlePinSuccess = async (token?: string) => {
-    if (token) {
-      unlock(token);
-    }
-    await doStartScanner();
   };
 
   const stopScanner = async () => {
@@ -388,15 +373,6 @@ export default function Attendance() {
           </Command>
         </DialogContent>
       </Dialog>
-
-      <PinDialog
-        open={pinDialogOpen}
-        onOpenChange={setPinDialogOpen}
-        scope="scanner_pin"
-        title="Unlock Scanner"
-        description="Enter the PIN to activate the scanner for 1 hour."
-        onSuccess={handlePinSuccess}
-      />
     </div>
   );
 }
