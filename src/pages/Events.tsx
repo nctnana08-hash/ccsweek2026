@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Trash2, ChevronRight, Archive } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDateOnly, todayDateInput } from "@/lib/datetime";
 
 import { PinDialog } from "@/components/PinDialog";
 
@@ -66,7 +66,7 @@ export default function Events() {
                   {e.status === "archived" && <Badge variant="secondary"><Archive className="h-3 w-3 mr-1" />Archived</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {format(new Date(e.start_date), "MMM d")} – {format(new Date(e.end_date), "MMM d, yyyy")}
+                  {formatDateOnly(e.start_date, "MMM d")} – {formatDateOnly(e.end_date, "MMM d, yyyy")}
                 </p>
               </div>
               <Button size="icon" variant="ghost" onClick={(ev) => { ev.stopPropagation(); setToDelete(e.id); setPinOpen(true); }}>
@@ -97,7 +97,7 @@ export default function Events() {
 }
 
 function CreateEventDialog({ onCreate, onClose }: { onCreate: (e: any) => Promise<void>; onClose: () => void }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDateInput();
   const [form, setForm] = useState({ event_name: "", start_date: today, end_date: today });
   return (
     <DialogContent className="sm:max-w-md">
