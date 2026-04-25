@@ -310,12 +310,12 @@ export default function Attendance() {
             <div className="flex-1 text-xs text-muted-foreground">
               {draftDirty
                 ? "Unsaved changes — click Save to sync to all devices."
-                : "All devices are in sync with the current selection."}
+                : "Saved selection — click Save & Sync again to refresh all devices."}
             </div>
             <Button
               size="sm"
               onClick={saveContext}
-              disabled={!draftDirty || updateCtx.isPending || !draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id}
+              disabled={updateCtx.isPending || !draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id}
               className="bg-gradient-primary text-white shadow-festive"
             >
               {updateCtx.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
