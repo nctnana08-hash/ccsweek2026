@@ -34,7 +34,14 @@ export function formatDateOnly(dateStr: string, pattern: string): string {
 }
 
 export function todayDateInput(): string {
-  return new Date().toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "01";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 export function formatDateTimeInAppTimeZone(
