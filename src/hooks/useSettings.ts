@@ -28,13 +28,17 @@ export function useActiveContext() {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "app_settings",
           filter: "key=eq.active_scan_context",
         },
-        () => {
-          // Invalidate query to refetch when context changes on another device
+        (payload) => {
+          const nextValue = (payload.new as { value?: ActiveContext } | null)?.value;
+          if (nextValue) {
+            localStorage.setItem("ccs_active_context", JSON.stringify(nextValue));
+            qc.setQueryData(["app_settings", "active_scan_context"], nextValue);
+          }
           qc.invalidateQueries({ queryKey: ["app_settings", "active_scan_context"] });
         }
       )
@@ -47,11 +51,14 @@ export function useActiveContext() {
 
   return useQuery({
     queryKey: ["app_settings", "active_scan_context"],
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       // Fetch from backend (synced across all devices)
       try {
         const res = await api.getActiveContext();
         if (res.ok && res.context) {
+          localStorage.setItem("ccs_active_context", JSON.stringify(res.context));
           return res.context as ActiveContext;
         }
       } catch {
