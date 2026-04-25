@@ -234,25 +234,35 @@ export default function Attendance() {
   };
 
   const setEvent = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
-      return;
-    }
-    updateCtx.mutate({ event_id: id, day_id: null, slot_id: null });
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx({ event_id: id, day_id: null, slot_id: null });
   };
   const setDay = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
-      return;
-    }
-    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: id, slot_id: null });
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx((d) => ({ ...d, day_id: id, slot_id: null }));
   };
   const setSlot = (id: string) => {
-    if (!unlocked) {
-      toast.error("Only admins can change the scanner context");
+    if (!unlocked) { toast.error("Only admins can change the scanner context"); return; }
+    setDraftCtx((d) => ({ ...d, slot_id: id }));
+  };
+
+  const draftDirty =
+    draftCtx.event_id !== (ctx?.event_id ?? null) ||
+    draftCtx.day_id !== (ctx?.day_id ?? null) ||
+    draftCtx.slot_id !== (ctx?.slot_id ?? null);
+
+  const saveContext = async () => {
+    if (!unlocked) { toast.error("Admin only"); return; }
+    if (!draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id) {
+      toast.error("Pick Event, Day and Slot first");
       return;
     }
-    updateCtx.mutate({ event_id: ctx?.event_id ?? null, day_id: ctx?.day_id ?? null, slot_id: id });
+    try {
+      await updateCtx.mutateAsync(draftCtx);
+      toast.success("Saved — synced to all devices");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to sync. Re-enter admin PIN and try again.");
+    }
   };
 
   const fbColor = feedback?.kind === "in" ? "bg-scan-in" : feedback?.kind === "out" ? "bg-scan-out"
