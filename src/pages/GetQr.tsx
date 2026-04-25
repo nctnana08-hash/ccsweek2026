@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bunting } from "@/components/Bunting";
 import { CcsLogo } from "@/components/CcsLogo";
 import { api } from "@/lib/api";
@@ -44,6 +45,7 @@ export default function GetQr() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ student: PublicStudent; qr: string } | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [downloadReminderOpen, setDownloadReminderOpen] = useState(false);
 
   const lookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +89,7 @@ export default function GetQr() {
 
   const download = async () => {
     if (!result) return;
+    setDownloadReminderOpen(false);
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
