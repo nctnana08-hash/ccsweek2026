@@ -203,27 +203,21 @@ export default function GetQr() {
                   <div className="text-xs opacity-90">CCS Student Council</div>
                 </div>
                 
-                <div className="p-4 bg-gradient-orange/5 flex justify-center">
-                  <div className="rounded-lg" style={{
-                    width: 280,
-                    height: 280,
-                    padding: 12,
-                    background: "linear-gradient(135deg, hsl(30 100% 60%) 0%, hsl(22 95% 55%) 50%, hsl(15 90% 50%) 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
+                <div className="p-4 bg-orange-50/50 flex justify-center">
+                  <div className="rounded-xl" style={{
+                    padding: 10,
+                    background: "linear-gradient(135deg, hsl(38 95% 55%) 0%, hsl(22 90% 50%) 60%, hsl(15 85% 42%) 100%)",
+                    boxShadow: "0 12px 30px rgba(194,65,12,0.25)"
                   }}>
                     <img
                       src={result.qr}
                       alt="Student QR"
-                      className="rounded"
-                      width={256}
-                      height={256}
+                      className="rounded-lg block bg-white"
+                      style={{ width: 320, height: 320 }}
                     />
                   </div>
                 </div>
-                
+
                 <div className="px-4 pb-4 bg-orange-50 rounded-b-lg">
                   <div className="font-display uppercase tracking-wide text-sm text-orange-900 mb-1">{result.student.name}</div>
                   <div className="text-xs text-orange-700 font-mono mb-3">
