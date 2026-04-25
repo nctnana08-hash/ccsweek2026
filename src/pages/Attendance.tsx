@@ -158,7 +158,7 @@ export default function Attendance() {
     };
 
     if (!navigator.onLine) {
-      await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
+      await queueScan({ ...scanInput, scanned_at: new Date().toISOString(), local_id: crypto.randomUUID() });
       setPending(await pendingCount());
       setFeedback({ kind: "ok", text: unlocked ? `${student.name} (queued offline)` : "✓ Recorded (offline)" });
       beep(880); setCounter((c) => c + 1); return;
@@ -188,7 +188,7 @@ export default function Attendance() {
         setFeedback({ kind: "unknown", text: "Unknown student" }); beep(220);
       } else {
         setFeedback({ kind: "unknown", text: "Save failed — queued offline" });
-        await queueScan({ ...scanInput, local_id: crypto.randomUUID() });
+        await queueScan({ ...scanInput, scanned_at: new Date().toISOString(), local_id: crypto.randomUUID() });
         setPending(await pendingCount()); beep(220);
       }
     }
