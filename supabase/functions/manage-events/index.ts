@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
         if (!ctx) return jsonResponse({ error: "bad_input" }, 400);
         const { error } = await admin
           .from("app_settings")
-          .upsert({ key: "active_scan_context", value: ctx });
+          .upsert({ key: "active_scan_context", value: ctx, updated_at: new Date().toISOString() });
         if (error) return jsonResponse({ error: error.message }, 500);
         return jsonResponse({ ok: true });
       },
