@@ -305,7 +305,7 @@ export default function Attendance() {
             <div className="flex flex-wrap gap-2 justify-center">
               <Button 
                 size="lg" 
-                disabled={!ctx?.slot_id || isExpired()} 
+                disabled={!ctx?.slot_id} 
                 onClick={startScanner} 
                 className="bg-gradient-primary shadow-festive hover:scale-105 transition-transform"
               >

@@ -35,8 +35,8 @@ export function PinDialog({
     setBusy(true);
     setError("");
     try {
-      const res = await api.verifyPin(scope, pin);
-      if (!res.ok) {
+      const res: any = await api.verifyPin(scope, pin);
+      if (!res?.ok) {
         setError("Incorrect PIN");
         setBusy(false);
         return;
@@ -44,7 +44,7 @@ export function PinDialog({
       setPin("");
       setBusy(false);
       onOpenChange(false);
-      onSuccess(res.token);
+      onSuccess(res.token ?? res.session_token);
     } catch (err: any) {
       setError(err?.message ?? "Verification failed");
       setBusy(false);
