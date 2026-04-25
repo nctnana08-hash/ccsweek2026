@@ -235,7 +235,7 @@ export default function GetQr() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 mb-2">
-                    <Button onClick={download} className="bg-gradient-orange text-white hover:opacity-90">
+                    <Button onClick={() => setDownloadReminderOpen(true)} className="bg-gradient-orange text-primary-foreground hover:opacity-90">
                       <Download className="h-4 w-4 mr-1.5" />
                       Download
                     </Button>
@@ -250,8 +250,9 @@ export default function GetQr() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      setResult(null);                      setStudentId("");
-                      setStudentName("");                      setStudentId("");
+                      setResult(null);
+                      setStudentId("");
+                      setStudentName("");
                     }}
                   >
                     Look up another
@@ -261,6 +262,19 @@ export default function GetQr() {
             )}
           </CardContent>
         </Card>
+        <Dialog open={downloadReminderOpen} onOpenChange={setDownloadReminderOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-display uppercase tracking-wide">Save your QR</DialogTitle>
+              <DialogDescription>
+                Please download and save this QR code for attendance during CCS Week.
+              </DialogDescription>
+            </DialogHeader>
+            <Button onClick={download} className="w-full bg-gradient-orange text-primary-foreground">
+              I Understand
+            </Button>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
