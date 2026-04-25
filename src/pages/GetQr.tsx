@@ -87,64 +87,71 @@ export default function GetQr() {
 
   const download = async () => {
     if (!result) return;
-    
-    // Create canvas with design
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    
-    const size = 600;
-    const margin = 40;
-    const padding = 20;
-    
+
+    const size = 1100;          // overall card width (bigger)
+    const qrSize = 880;         // big QR for easy scanning
+    const headerH = 140;
+    const footerH = 180;
+
     canvas.width = size;
-    canvas.height = size + 140;
-    
+    canvas.height = headerH + qrSize + footerH;
+
     // Background
     ctx.fillStyle = "#f5e6d3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Orange gradient header
     const gradient = ctx.createLinearGradient(0, 0, size, 0);
-    gradient.addColorStop(0, "#de8936");
-    gradient.addColorStop(0.5, "#d97a2a");
-    gradient.addColorStop(1, "#bf6b25");
+    gradient.addColorStop(0, "#f59e0b");
+    gradient.addColorStop(0.5, "#ea7c1a");
+    gradient.addColorStop(1, "#c2410c");
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, 100);
-    
+    ctx.fillRect(0, 0, canvas.width, headerH);
+
     // Header text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 24px 'Oswald', sans-serif";
+    ctx.font = "bold 42px 'Oswald', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("CCS ATTENDANCE", size / 2, 35);
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillText("Student Council", size / 2, 60);
-    
-    // QR Code
+    ctx.fillText("CCS ATTENDANCE", size / 2, 60);
+    ctx.font = "20px 'Inter', sans-serif";
+    ctx.fillText("Student Council", size / 2, 95);
+
+    // Generate a large, low-density QR fresh for the download (less crammed than display)
+    const printQr = await generateQrDataUrl(buildQrPayload(result.student), 1024);
+
     const qrImg = new Image();
     qrImg.onload = () => {
-      const qrSize = 400;
       const qrX = (size - qrSize) / 2;
-      const qrY = 120;
+      const qrY = headerH + 10;
+      // White backing for quiet zone
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-      
+
       // Student info
       ctx.fillStyle = "#333333";
-      ctx.font = "bold 16px 'Oswald', sans-serif";
+      ctx.font = "bold 30px 'Oswald', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(result.student.name, size / 2, size + 100);
-      
+      ctx.fillText(result.student.name, size / 2, headerH + qrSize + 70);
+
       ctx.fillStyle = "#666666";
-      ctx.font = "12px 'Courier New', monospace";
-      ctx.fillText(result.student.student_id + " · " + result.student.section, size / 2, size + 125);
-      
-      // Download
+      ctx.font = "22px 'Courier New', monospace";
+      ctx.fillText(
+        result.student.student_id + " · " + result.student.section,
+        size / 2,
+        headerH + qrSize + 110,
+      );
+
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
       link.download = `CCS-QR-${result.student.student_id}.png`;
       link.click();
     };
-    qrImg.src = result.qr;
+    qrImg.src = printQr;
   };
 
   return (
