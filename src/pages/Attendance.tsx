@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock } from "lucide-react";
+import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
 import { queueScan, flushQueue, pendingCount } from "@/lib/offline";
