@@ -155,7 +155,6 @@ export default function Attendance() {
       event_id: ctx.event_id,
       day_id: ctx.day_id,
       slot_id: activeSlot.id,
-      scanned_at: new Date().toISOString(),
     };
 
     if (!navigator.onLine) {
