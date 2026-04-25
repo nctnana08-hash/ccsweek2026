@@ -76,7 +76,7 @@ export default function GetQr() {
         name: res.student.name,
         section: res.student.section,
       };
-      const qr = await generateQrDataUrl(buildQrPayload(student), 512);
+      const qr = await generateQrDataUrl(buildQrPayload(student), 768);
       setResult({ student, qr });
     } catch (err: any) {
       toast.error(err.message ?? "Lookup failed");
