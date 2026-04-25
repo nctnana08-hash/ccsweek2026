@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { Bunting } from "@/components/Bunting";
+import { formatDateOnly, todayDateInput } from "@/lib/datetime";
 
 const TEMPLATES: Record<string, Array<{ label: string; type: "in" | "out" | "custom" }>> = {
   "single": [{ label: "Check-in", type: "in" }],
@@ -28,7 +28,7 @@ export default function EventDetail() {
   const upsertDay = useUpsertEventDay();
   const delDay = useDeleteEventDay();
   const upsertSlot = useUpsertScanSlot();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDateInput();
   const [newDay, setNewDay] = useState({ day_label: "", date: today, template: "in-out" });
 
   if (!event) return <div className="p-6">Loading…</div>;
@@ -52,7 +52,7 @@ export default function EventDetail() {
           <Button size="icon" variant="ghost" onClick={() => navigate("/events")}><ArrowLeft className="h-4 w-4" /></Button>
           <div className="flex-1 min-w-0">
             <h1 className="font-display uppercase text-xl md:text-2xl tracking-wide truncate">{event.event_name}</h1>
-            <p className="text-xs text-muted-foreground">{format(new Date(event.start_date), "MMM d")} – {format(new Date(event.end_date), "MMM d, yyyy")}</p>
+            <p className="text-xs text-muted-foreground">{formatDateOnly(event.start_date, "MMM d")} – {formatDateOnly(event.end_date, "MMM d, yyyy")}</p>
           </div>
         </div>
       </Card>
