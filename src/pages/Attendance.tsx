@@ -39,8 +39,16 @@ export default function Attendance() {
   const { data: events = [] } = useEvents();
   const { data: ctx } = useActiveContext();
   const updateCtx = useUpdateActiveContext();
-  const { data: days = [] } = useEventDays(ctx?.event_id ?? null);
-  const { data: slots = [] } = useScanSlots(ctx?.day_id ?? null);
+  // Draft context (admin edits locally, then explicitly saves to all devices)
+  const [draftCtx, setDraftCtx] = useState<{ event_id: string | null; day_id: string | null; slot_id: string | null }>({
+    event_id: null, day_id: null, slot_id: null,
+  });
+  // Sync draft from server context whenever it changes (e.g. on first load or from another device)
+  useEffect(() => {
+    if (ctx) setDraftCtx({ event_id: ctx.event_id, day_id: ctx.day_id, slot_id: ctx.slot_id });
+  }, [ctx?.event_id, ctx?.day_id, ctx?.slot_id]);
+  const { data: days = [] } = useEventDays(draftCtx.event_id ?? ctx?.event_id ?? null);
+  const { data: slots = [] } = useScanSlots(draftCtx.day_id ?? ctx?.day_id ?? null);
   const { data: students = [] } = useStudents();
   
   const recordScan = useRecordScan();
