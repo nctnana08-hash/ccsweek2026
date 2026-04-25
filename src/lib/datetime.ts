@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 
+export const APP_TIME_ZONE = "Asia/Manila";
+
 export function parseDate(dateStr: string): Date | null {
   if (!dateStr) return null;
 
@@ -33,4 +35,42 @@ export function formatDateOnly(dateStr: string, pattern: string): string {
 
 export function todayDateInput(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+export function formatDateTimeInAppTimeZone(
+  value: string,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    ...options,
+  }).format(date);
+}
+
+export function formatRecordTime(value: string): string {
+  return formatDateTimeInAppTimeZone(value, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+export function formatRecordExportTime(value: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`;
 }
