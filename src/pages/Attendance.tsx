@@ -291,19 +291,39 @@ export default function Attendance() {
         </div>
       </Card>
 
-      <Card className="p-3 grid grid-cols-3 gap-2 ccs-festive-card border-0">
-        <Select value={ctx?.event_id ?? ""} onValueChange={setEvent} disabled={!unlocked}>
-          <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
-          <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
-        </Select>
-        <Select value={ctx?.day_id ?? ""} onValueChange={setDay} disabled={!unlocked || !ctx?.event_id}>
-          <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-          <SelectContent>{days.map((d) => <SelectItem key={d.id} value={d.id}>{d.day_label}</SelectItem>)}</SelectContent>
-        </Select>
-        <Select value={ctx?.slot_id ?? ""} onValueChange={setSlot} disabled={!unlocked || !ctx?.day_id}>
-          <SelectTrigger><SelectValue placeholder="Slot" /></SelectTrigger>
-          <SelectContent>{slots.map((s) => <SelectItem key={s.id} value={s.id}>{s.slot_label}</SelectItem>)}</SelectContent>
-        </Select>
+      <Card className="p-3 space-y-2 ccs-festive-card border-0">
+        <div className="grid grid-cols-3 gap-2">
+          <Select value={draftCtx.event_id ?? ""} onValueChange={setEvent} disabled={!unlocked}>
+            <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
+            <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={draftCtx.day_id ?? ""} onValueChange={setDay} disabled={!unlocked || !draftCtx.event_id}>
+            <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+            <SelectContent>{days.map((d) => <SelectItem key={d.id} value={d.id}>{d.day_label}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={draftCtx.slot_id ?? ""} onValueChange={setSlot} disabled={!unlocked || !draftCtx.day_id}>
+            <SelectTrigger><SelectValue placeholder="Slot" /></SelectTrigger>
+            <SelectContent>{slots.map((s) => <SelectItem key={s.id} value={s.id}>{s.slot_label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        {unlocked && (
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex-1 text-xs text-muted-foreground">
+              {draftDirty
+                ? "Unsaved changes — click Save to sync to all devices."
+                : "All devices are in sync with the current selection."}
+            </div>
+            <Button
+              size="sm"
+              onClick={saveContext}
+              disabled={!draftDirty || updateCtx.isPending || !draftCtx.event_id || !draftCtx.day_id || !draftCtx.slot_id}
+              className="bg-gradient-primary text-white shadow-festive"
+            >
+              {updateCtx.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
+              Save & Sync
+            </Button>
+          </div>
+        )}
       </Card>
 
       {!scanning ? (
