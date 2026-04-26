@@ -136,28 +136,27 @@ export default function IpcExport() {
 
       {/* Printable Report */}
       <div className="bg-white text-slate-800 print:bg-white">
-        <div className="px-8 py-10 print:px-12 print:py-10 print:break-after-auto">
+        <div className="px-8 py-6 print:px-10 print:py-6 print:break-after-auto">
           {/* Header */}
           <div className="flex flex-col items-center text-center">
-            <CcsLogo size={88} rounded={false} className="!rounded-none" />
             <h1
-              className="mt-6 font-display uppercase tracking-wide text-3xl print:text-3xl"
+              className="font-display uppercase tracking-wide text-xl print:text-xl"
               style={{ color: "#1f3a5f" }}
             >
               CCS Attendance Report{event ? `: ${event.event_name}` : ""}
             </h1>
-            <p className="mt-2 text-slate-500 text-base">College of Computer Studies Student Council</p>
-            <div className="mt-4 h-[3px] w-full" style={{ backgroundColor: "#f59e0b" }} />
+            <p className="mt-1 text-slate-500 text-xs">College of Computer Studies Student Council</p>
+            <div className="mt-2 h-[2px] w-full" style={{ backgroundColor: "#f59e0b" }} />
           </div>
 
           {/* Meta */}
-          <div className="flex justify-between text-sm mt-6 text-slate-600">
+          <div className="flex justify-between text-xs mt-3 text-slate-600">
             <div><span className="font-semibold text-slate-800">Date of Report:</span> {today}</div>
-            <div><span className="font-semibold text-slate-800">Generated via:</span> Lovable Attendance System</div>
+            <div><span className="font-semibold text-slate-800">Event:</span> {event?.event_name ?? "—"}</div>
           </div>
 
           {/* Sections */}
-          <div className="mt-8 space-y-8">
+          <div className="mt-4 space-y-5">
             {grid.map((section) => (
               <section key={section.section} className="print:break-inside-avoid">
                 <div className="flex items-center gap-3 mb-3">
