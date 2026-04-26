@@ -47,7 +47,7 @@ export default function GetQr() {
         return;
       }
       // Check if name matches (fuzzy matching)
-      if (!fuzzyMatchName(trimmedName, res.student.name)) {
+      if (!isCloseName(trimmedName, res.student.name)) {
         setNotFound(true);
         return;
       }
