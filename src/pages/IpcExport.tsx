@@ -11,7 +11,7 @@ import { CcsLogo } from "@/components/CcsLogo";
 import { SECTIONS } from "@/lib/constants";
 import { PinDialog } from "@/components/PinDialog";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/datetime";
+import { formatDateOnly, todayDateInput } from "@/lib/datetime";
 
 export default function IpcExport() {
   const { data: events = [] } = useEvents();
@@ -95,7 +95,7 @@ export default function IpcExport() {
     );
   };
 
-  const today = formatDate(new Date().toISOString().slice(0, 10));
+  const today = formatDateOnly(todayDateInput(), "MMMM d, yyyy");
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-5xl mx-auto print:p-0 print:space-y-0 print:max-w-none">
