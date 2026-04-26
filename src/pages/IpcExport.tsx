@@ -168,6 +168,19 @@ export default function IpcExport() {
           ))}
         </div>
       </Card>
+
+      <PinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        scope="delete_confirm"
+        title="Confirm Delete Students"
+        description={
+          sectionFilter === "all"
+            ? "Enter the delete PIN to permanently remove ALL students."
+            : `Enter the delete PIN to permanently remove all students in ${sectionFilter}.`
+        }
+        onSuccess={confirmDeleteSection}
+      />
     </div>
   );
 }
