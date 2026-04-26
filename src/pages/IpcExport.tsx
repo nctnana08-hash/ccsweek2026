@@ -1,22 +1,28 @@
 import { useMemo, useState } from "react";
 import { useEvents, useEventDays } from "@/hooks/useEvents";
 import { useAttendance } from "@/hooks/useAttendance";
-import { useStudents } from "@/hooks/useStudents";
+import { useStudents, useDeleteStudents } from "@/hooks/useStudents";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, Trash2 } from "lucide-react";
 import { Bunting } from "@/components/Bunting";
 import { CcsLogo } from "@/components/CcsLogo";
+import { SECTIONS } from "@/lib/constants";
+import { PinDialog } from "@/components/PinDialog";
+import { toast } from "sonner";
 
 export default function IpcExport() {
   const { data: events = [] } = useEvents();
   const [eventId, setEventId] = useState("");
+  const [sectionFilter, setSectionFilter] = useState<string>("all");
   const { data: days = [] } = useEventDays(eventId || null);
   const { data: students = [] } = useStudents();
   const { data: records = [] } = useAttendance({ event_id: eventId || undefined });
   const [signatories, setSignatories] = useState({ prepared: "", noted: "", approved: "" });
+  const del = useDeleteStudents();
+  const [pinOpen, setPinOpen] = useState(false);
 
   const grid = useMemo(() => {
     // Map: student_id + day_id -> { in: time, out: time }
