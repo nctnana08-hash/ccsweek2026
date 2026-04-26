@@ -173,7 +173,7 @@ export default function Records() {
                     />
                   </td>
                   <td className="px-3 py-2 text-xs tabular-nums">{formatRecordTime(r.scanned_at)}</td>
-                  <td className="px-3 py-2"><div>{r.name}</div><div className="text-xs text-muted-foreground font-mono">{r.student_id}</div></td>
+                  <td className="px-3 py-2 min-w-48"><div className="whitespace-nowrap">{r.name}</div><div className="text-xs text-muted-foreground font-mono whitespace-nowrap">{r.student_id}</div></td>
                   <td className="px-3 py-2 hidden md:table-cell text-xs">{r.section}</td>
                   <td className="px-3 py-2"><Badge variant="outline">{r.slot_label}</Badge></td>
                   <td className="px-3 py-2">{r.is_late && <Badge className="bg-flag-red">Late</Badge>}</td>

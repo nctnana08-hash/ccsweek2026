@@ -79,7 +79,7 @@ export default function Absences() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t">
-                  <td className="px-3 py-2"><div>{r.name}</div><div className="text-xs text-muted-foreground font-mono">{r.student_id}</div><div className="text-xs text-muted-foreground md:hidden">{r.section}</div></td>
+                  <td className="px-3 py-2 min-w-48"><div className="whitespace-nowrap">{r.name}</div><div className="text-xs text-muted-foreground font-mono whitespace-nowrap">{r.student_id}</div><div className="text-xs text-muted-foreground md:hidden whitespace-nowrap">{r.section}</div></td>
                   <td className="px-3 py-2 hidden md:table-cell text-xs">{r.section}</td>
                   <td className="px-3 py-2 tabular-nums">{r.present} / {days.length}</td>
                   <td className="px-3 py-2"><Badge className={r.absent >= 8 ? "bg-flag-red" : "bg-muted-foreground"}>{r.absent}</Badge></td>
