@@ -13,12 +13,13 @@ import { PinDialog } from "@/components/PinDialog";
 import { SECTIONS } from "@/lib/constants";
 import { formatRecordExportTime, formatRecordTime } from "@/lib/datetime";
 import { api } from "@/lib/api";
-import { getAdminToken, setAdminToken } from "@/stores/admin";
+import { useAdmin } from "@/stores/admin";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
 export default function Records() {
   const { data: events = [] } = useEvents();
+  const { unlock: unlockAdmin } = useAdmin();
   const [eventId, setEventId] = useState("");
   const [dayId, setDayId] = useState("");
   const [slotId, setSlotId] = useState("");
@@ -91,7 +92,7 @@ export default function Records() {
     
     setDeleting(true);
     try {
-      setAdminToken(token);
+      unlockAdmin(token);
       await api.events.deleteAttendance(Array.from(selectedIds));
       toast.success(`Deleted ${selectedIds.size} record(s)`);
       setSelectedIds(new Set());
@@ -101,7 +102,7 @@ export default function Records() {
     } finally {
       setDeleting(false);
     }
-  }, [selectedIds]);
+  }, [selectedIds, unlockAdmin]);
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
