@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Printer, Trash2 } from "lucide-react";
-import { CcsLogo } from "@/components/CcsLogo";
+
 import { SECTIONS } from "@/lib/constants";
 import { PinDialog } from "@/components/PinDialog";
 import { toast } from "sonner";
@@ -136,42 +136,41 @@ export default function IpcExport() {
 
       {/* Printable Report */}
       <div className="bg-white text-slate-800 print:bg-white">
-        <div className="px-8 py-10 print:px-12 print:py-10 print:break-after-auto">
+        <div className="px-8 py-6 print:px-10 print:py-6 print:break-after-auto">
           {/* Header */}
           <div className="flex flex-col items-center text-center">
-            <CcsLogo size={88} rounded={false} className="!rounded-none" />
             <h1
-              className="mt-6 font-display uppercase tracking-wide text-3xl print:text-3xl"
+              className="font-display uppercase tracking-wide text-xl print:text-xl"
               style={{ color: "#1f3a5f" }}
             >
               CCS Attendance Report{event ? `: ${event.event_name}` : ""}
             </h1>
-            <p className="mt-2 text-slate-500 text-base">College of Computer Studies Student Council</p>
-            <div className="mt-4 h-[3px] w-full" style={{ backgroundColor: "#f59e0b" }} />
+            <p className="mt-1 text-slate-500 text-xs">College of Computer Studies Student Council</p>
+            <div className="mt-2 h-[2px] w-full" style={{ backgroundColor: "#f59e0b" }} />
           </div>
 
           {/* Meta */}
-          <div className="flex justify-between text-sm mt-6 text-slate-600">
+          <div className="flex justify-between text-xs mt-3 text-slate-600">
             <div><span className="font-semibold text-slate-800">Date of Report:</span> {today}</div>
-            <div><span className="font-semibold text-slate-800">Generated via:</span> Lovable Attendance System</div>
+            <div><span className="font-semibold text-slate-800">Event:</span> {event?.event_name ?? "—"}</div>
           </div>
 
           {/* Sections */}
-          <div className="mt-8 space-y-8">
+          <div className="mt-4 space-y-5">
             {grid.map((section) => (
               <section key={section.section} className="print:break-inside-avoid">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="inline-block w-1.5 h-6" style={{ backgroundColor: "#f59e0b" }} />
-                  <h2 className="font-display text-xl font-semibold" style={{ color: "#f59e0b" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-block w-1 h-4" style={{ backgroundColor: "#f59e0b" }} />
+                  <h2 className="font-display text-sm font-semibold" style={{ color: "#f59e0b" }}>
                     Section: {section.section}
                   </h2>
                 </div>
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-xs">
                   <thead>
                     <tr style={{ backgroundColor: "#f1f5f9" }}>
-                      <th className="text-left font-semibold px-4 py-3 border border-slate-200" style={{ color: "#1f3a5f" }}>Name</th>
+                      <th className="text-left font-semibold px-2 py-1.5 border border-slate-200" style={{ color: "#1f3a5f" }}>Name</th>
                       {days.map((d) => (
-                        <th key={d.id} className="text-left font-semibold px-4 py-3 border border-slate-200" style={{ color: "#1f3a5f" }}>
+                        <th key={d.id} className="text-left font-semibold px-2 py-1.5 border border-slate-200" style={{ color: "#1f3a5f" }}>
                           {d.day_label}
                         </th>
                       ))}
@@ -180,9 +179,9 @@ export default function IpcExport() {
                   <tbody>
                     {section.students.map((s, idx) => (
                       <tr key={s.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#fafafa" }}>
-                        <td className="px-4 py-3 border border-slate-200 text-slate-800">{s.name}</td>
+                        <td className="px-2 py-1.5 border border-slate-200 text-slate-800">{s.name}</td>
                         {s.days.map((d, i) => (
-                          <td key={i} className="px-4 py-3 border border-slate-200">
+                          <td key={i} className="px-2 py-1.5 border border-slate-200">
                             {d.in || d.out ? (
                               <span className="font-semibold" style={{ color: "#2563eb" }}>
                                 {d.in && d.out ? `In: ${d.in} / Out: ${d.out}` : d.in ? `In: ${d.in}` : `Out: ${d.out}`}
@@ -196,7 +195,7 @@ export default function IpcExport() {
                     ))}
                     {section.students.length === 0 && (
                       <tr>
-                        <td colSpan={days.length + 1} className="px-4 py-4 text-center text-slate-400 border border-slate-200">
+                        <td colSpan={days.length + 1} className="px-2 py-2 text-center text-slate-400 border border-slate-200">
                           No students.
                         </td>
                       </tr>
