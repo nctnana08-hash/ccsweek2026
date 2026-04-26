@@ -96,7 +96,6 @@ export default function Records() {
       await api.events.deleteAttendance(Array.from(selectedIds));
       toast.success(`Deleted ${selectedIds.size} record(s)`);
       setSelectedIds(new Set());
-      // Optionally refresh the records - the hook should handle this
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to delete records");
     } finally {
@@ -201,9 +200,9 @@ export default function Records() {
       <PinDialog
         open={pinDialogOpen}
         onOpenChange={setPinDialogOpen}
-        scope="delete_confirm"
-        title="Confirm Delete"
-        description="Enter PIN 47254725 to delete selected time in/out records"
+        scope="admin"
+        title="Delete Records"
+        description="Enter admin PIN to delete selected time in/out records"
         onSuccess={onPinSuccess}
       />
     </div>
