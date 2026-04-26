@@ -3,16 +3,17 @@ export const SECTIONS = [
   "BSIT 1A",
   "BSIT 1B",
   "BSIT 1C",
-  "BSCS 2A & 2B",
+  "BSCS 2A",
+  "BSCS 2B",
   "BSIT 2A",
   "BSIT 2B",
   "BSIT 2C",
   "BSIT 2D",
   "BSCS 3A",
-  "BSIT AMG",
-  "BSIT SMP",
-  "BSIT WMAD A",
-  "BSIT WMAD B",
+  "BSIT 3AMG",
+  "BSIT 3SMP",
+  "BSIT 3WMAD A",
+  "BSIT 3WMAD B",
 ] as const;
 
 export type Section = (typeof SECTIONS)[number];

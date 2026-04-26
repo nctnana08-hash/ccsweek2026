@@ -51,7 +51,7 @@ export function useActiveContext() {
 
   return useQuery({
     queryKey: ["app_settings", "active_scan_context"],
-    refetchInterval: 3000,
+    refetchInterval: 1500,
     refetchOnWindowFocus: true,
     queryFn: async () => {
       // Fetch from backend (synced across all devices)

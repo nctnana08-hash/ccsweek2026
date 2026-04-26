@@ -12,7 +12,7 @@ import { PinDialog } from "@/components/PinDialog";
 import { Plus, Trash2, Upload, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { Bunting } from "@/components/Bunting";
-import * as XLSX from "xlsx";
+import { parseClassListWorkbook } from "@/lib/import";
 import { downloadStudentQr } from "@/lib/qr";
 
 export default function Students() {
@@ -54,23 +54,41 @@ export default function Students() {
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-    const cleaned = rows
-      .map((r) => ({
-        student_id: String(r.student_id ?? r.StudentID ?? r["Student ID"] ?? "").trim(),
-        name: String(r.name ?? r.Name ?? "").trim().replace(/\b\w/g, (c) => c.toUpperCase()),
-        section: String(r.section ?? r.Section ?? "").trim().toUpperCase(),
-        email: r.email ?? r.Email ?? null,
-        status: "enrolled" as const,
-      }))
-      .filter((r) => r.student_id && r.name && r.section);
-    if (!cleaned.length) { toast.error("No valid rows found"); return; }
-    await bulkInsert.mutateAsync(cleaned);
-    toast.success(`Imported ${cleaned.length} students`);
-    if (fileInput.current) fileInput.current.value = "";
+    try {
+      const buf = await file.arrayBuffer();
+      const { rows, warnings } = parseClassListWorkbook(buf);
+      if (!rows.length) {
+        toast.error("No valid student rows found in the file");
+        return;
+      }
+      // Existing roster — used to count added vs updated vs unchanged.
+      const existingById = new Map(students.map((s) => [s.student_id, s]));
+      let added = 0, updated = 0, unchanged = 0;
+      const toUpsert: typeof rows = [];
+      for (const r of rows) {
+        const cur = existingById.get(r.student_id);
+        if (!cur) { added++; toUpsert.push(r); continue; }
+        if (cur.name !== r.name || cur.section !== r.section || (cur.email ?? null) !== (r.email ?? null)) {
+          updated++;
+          toUpsert.push(r);
+        } else {
+          unchanged++;
+        }
+      }
+      if (!toUpsert.length) {
+        toast.info(`No changes — ${unchanged} students already up to date`);
+      } else {
+        await bulkInsert.mutateAsync(toUpsert);
+        toast.success(
+          `Imported ${rows.length} rows · ${added} added, ${updated} updated, ${unchanged} unchanged`
+        );
+      }
+      warnings.slice(0, 4).forEach((w) => toast.warning(w));
+    } catch (err: any) {
+      toast.error(err?.message ?? "Import failed");
+    } finally {
+      if (fileInput.current) fileInput.current.value = "";
+    }
   };
 
   return (

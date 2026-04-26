@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { buildQrPayload, generateQrDataUrl } from "@/lib/qr";
 import { toast } from "sonner";
 import { Download, Mail, ShieldAlert } from "lucide-react";
+import { isCloseName } from "@/lib/nameMatch";
 
 interface PublicStudent {
   id: string; // synthesized for QR payload (uses student_id)
@@ -17,27 +18,7 @@ interface PublicStudent {
   section: string;
 }
 
-// Forgiving name matching: case-insensitive, ignores spaces/punctuation/accents
-function fuzzyMatchName(input: string, stored: string): boolean {
-  const normalize = (s: string) => {
-    return s
-      .toLowerCase()
-      .replace(/[.\s\-,]/g, "") // Remove spaces, periods, hyphens, commas
-      .replace(/[áàâäã]/g, "a")
-      .replace(/[éèêë]/g, "e")
-      .replace(/[íìîï]/g, "i")
-      .replace(/[óòôöõ]/g, "o")
-      .replace(/[úùûü]/g, "u")
-      .replace(/[ç]/g, "c")
-      .replace(/[ñ]/g, "n");
-  };
-  const normalizedInput = normalize(input);
-  const normalizedStored = normalize(stored);
-  // Exact match or substring match (stored contains input or vice versa)
-  return normalizedInput === normalizedStored || 
-         normalizedStored.includes(normalizedInput) ||
-         normalizedInput.includes(normalizedStored);
-}
+// Name verification now lives in @/lib/nameMatch (stricter token-overlap match).
 
 export default function GetQr() {
   const [studentId, setStudentId] = useState("");
@@ -66,7 +47,7 @@ export default function GetQr() {
         return;
       }
       // Check if name matches (fuzzy matching)
-      if (!fuzzyMatchName(trimmedName, res.student.name)) {
+      if (!isCloseName(trimmedName, res.student.name)) {
         setNotFound(true);
         return;
       }

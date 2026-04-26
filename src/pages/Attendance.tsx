@@ -9,9 +9,10 @@ import { useScanner } from "@/stores/scanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+
 import { Camera, X, Wifi, WifiOff, Hand, ScanLine, AlertCircle, Lock, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { parseQrPayload } from "@/lib/qr";
@@ -104,19 +105,21 @@ export default function Attendance() {
   const activeEvent = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
   const activeDay = useMemo(() => days.find((d) => d.id === ctx?.day_id), [days, ctx]);
 
-  // Online/offline + sync
+  // Online/offline + sync. Periodically attempt to flush the offline queue
+  // even when navigator stays "online" (handles flaky connections).
   useEffect(() => {
     const update = async () => { setOnline(navigator.onLine); setPending(await pendingCount()); };
-    const handleOnline = async () => {
-      setOnline(true);
+    const trySync = async () => {
+      if (!navigator.onLine) return;
       const n = await flushQueue();
       if (n > 0) toast.success(`Synced ${n} offline scan${n === 1 ? "" : "s"}`);
       setPending(await pendingCount());
     };
+    const handleOnline = async () => { setOnline(true); await trySync(); };
     update();
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", () => setOnline(false));
-    const i = setInterval(update, 5000);
+    const i = setInterval(async () => { await update(); await trySync(); }, 3000);
     return () => { window.removeEventListener("online", handleOnline); clearInterval(i); };
   }, []);
 
@@ -403,25 +406,63 @@ export default function Attendance() {
 
       <Dialog open={manualOpen} onOpenChange={setManualOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle className="font-display uppercase tracking-wide">Manual Entry</DialogTitle></DialogHeader>
-          <Command>
-            <CommandInput placeholder="Search name or ID…" value={manualSearch} onValueChange={setManualSearch} />
-            <CommandList>
-              <CommandEmpty>No students found</CommandEmpty>
-              <CommandGroup>
-                {students.filter((s) => s.status === "enrolled").slice(0, 50).map((s) => (
-                  <CommandItem key={s.id} value={`${s.name} ${s.student_id}`} onSelect={async () => {
-                    setManualOpen(false);
-                    cooldownRef.current = 0;
-                    await handleResult(`CCS_QR_V1::${btoa(JSON.stringify({ system: "ccs_system", type: "student", profile_id: s.id, student_id: s.student_id, last_name: s.name.split(" ").pop(), section: s.section }))}`);
-                  }}>
-                    <span className="font-medium">{s.name}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">{s.student_id} · {s.section}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase tracking-wide">Manual Entry</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Backup for when the QR can't scan. Type the exact <b>Student ID</b> — only an exact match is accepted.
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const id = manualSearch.trim();
+              if (!id) return;
+              const student = students.find((s) => s.student_id === id);
+              if (!student) {
+                toast.error(`No student with ID "${id}" — check the ID and try again`);
+                return;
+              }
+              if (student.status !== "enrolled") {
+                toast.error(`${student.name} is ${student.status} — cannot record`);
+                return;
+              }
+              setManualOpen(false);
+              setManualSearch("");
+              cooldownRef.current = 0;
+              try {
+                await handleResult(
+                  `CCS_QR_V1::${btoa(JSON.stringify({
+                    system: "ccs_system",
+                    type: "student",
+                    profile_id: student.id,
+                    student_id: student.student_id,
+                    last_name: student.name.split(" ").pop(),
+                    section: student.section,
+                  }))}`
+                );
+                toast.success(`Manual entry saved · ${student.name}`);
+              } catch (err: any) {
+                toast.error(`Manual entry failed: ${err?.message ?? "unknown error"}`);
+              }
+            }}
+            className="space-y-3"
+          >
+            <Input
+              autoFocus
+              placeholder="Student ID (e.g. 0425-0377)"
+              value={manualSearch}
+              onChange={(e) => setManualSearch(e.target.value)}
+              autoComplete="off"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => { setManualOpen(false); setManualSearch(""); }}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-gradient-primary" disabled={!manualSearch.trim()}>
+                Record
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
