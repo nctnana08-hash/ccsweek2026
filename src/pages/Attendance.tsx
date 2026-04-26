@@ -105,19 +105,21 @@ export default function Attendance() {
   const activeEvent = useMemo(() => events.find((e) => e.id === ctx?.event_id), [events, ctx]);
   const activeDay = useMemo(() => days.find((d) => d.id === ctx?.day_id), [days, ctx]);
 
-  // Online/offline + sync
+  // Online/offline + sync. Periodically attempt to flush the offline queue
+  // even when navigator stays "online" (handles flaky connections).
   useEffect(() => {
     const update = async () => { setOnline(navigator.onLine); setPending(await pendingCount()); };
-    const handleOnline = async () => {
-      setOnline(true);
+    const trySync = async () => {
+      if (!navigator.onLine) return;
       const n = await flushQueue();
       if (n > 0) toast.success(`Synced ${n} offline scan${n === 1 ? "" : "s"}`);
       setPending(await pendingCount());
     };
+    const handleOnline = async () => { setOnline(true); await trySync(); };
     update();
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", () => setOnline(false));
-    const i = setInterval(update, 5000);
+    const i = setInterval(async () => { await update(); await trySync(); }, 3000);
     return () => { window.removeEventListener("online", handleOnline); clearInterval(i); };
   }, []);
 
