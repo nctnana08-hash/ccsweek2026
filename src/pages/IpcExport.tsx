@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Printer, Trash2 } from "lucide-react";
-import { CcsLogo } from "@/components/CcsLogo";
+
 import { SECTIONS } from "@/lib/constants";
 import { PinDialog } from "@/components/PinDialog";
 import { toast } from "sonner";
