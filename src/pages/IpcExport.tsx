@@ -1,22 +1,28 @@
 import { useMemo, useState } from "react";
 import { useEvents, useEventDays } from "@/hooks/useEvents";
 import { useAttendance } from "@/hooks/useAttendance";
-import { useStudents } from "@/hooks/useStudents";
+import { useStudents, useDeleteStudents } from "@/hooks/useStudents";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, Trash2 } from "lucide-react";
 import { Bunting } from "@/components/Bunting";
 import { CcsLogo } from "@/components/CcsLogo";
+import { SECTIONS } from "@/lib/constants";
+import { PinDialog } from "@/components/PinDialog";
+import { toast } from "sonner";
 
 export default function IpcExport() {
   const { data: events = [] } = useEvents();
   const [eventId, setEventId] = useState("");
+  const [sectionFilter, setSectionFilter] = useState<string>("all");
   const { data: days = [] } = useEventDays(eventId || null);
   const { data: students = [] } = useStudents();
   const { data: records = [] } = useAttendance({ event_id: eventId || undefined });
   const [signatories, setSignatories] = useState({ prepared: "", noted: "", approved: "" });
+  const del = useDeleteStudents();
+  const [pinOpen, setPinOpen] = useState(false);
 
   const grid = useMemo(() => {
     // Map: student_id + day_id -> { in: time, out: time }
@@ -32,12 +38,14 @@ export default function IpcExport() {
       }
     });
 
-    // Group by section
+    // Group by section (respect section filter)
     const bySection = new Map<string, typeof students>();
-    students.filter((s) => s.status === "enrolled").forEach((s) => {
-      if (!bySection.has(s.section)) bySection.set(s.section, []);
-      bySection.get(s.section)!.push(s);
-    });
+    students
+      .filter((s) => s.status === "enrolled" && (sectionFilter === "all" || s.section === sectionFilter))
+      .forEach((s) => {
+        if (!bySection.has(s.section)) bySection.set(s.section, []);
+        bySection.get(s.section)!.push(s);
+      });
 
     const result = Array.from(bySection.entries()).map(([section, sectionStudents]) => ({
       section,
@@ -51,7 +59,16 @@ export default function IpcExport() {
     }));
 
     return result;
-  }, [records, students, days]);
+  }, [records, students, days, sectionFilter]);
+
+  const confirmDeleteSection = async () => {
+    const ids = students
+      .filter((s) => sectionFilter === "all" || s.section === sectionFilter)
+      .map((s) => s.id);
+    if (!ids.length) { toast.info("No students to delete"); return; }
+    await del.mutateAsync(ids);
+    toast.success(`Deleted ${ids.length} student${ids.length === 1 ? "" : "s"}${sectionFilter === "all" ? "" : ` from ${sectionFilter}`}`);
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto print:p-0 print:space-y-0 print:max-w-none">
@@ -64,15 +81,28 @@ export default function IpcExport() {
       </Card>
 
       <Card className="print:hidden">
-        <CardContent className="p-4 grid sm:grid-cols-4 gap-2">
+        <CardContent className="p-4 grid sm:grid-cols-5 gap-2">
           <Select value={eventId} onValueChange={setEventId}>
             <SelectTrigger><SelectValue placeholder="Event" /></SelectTrigger>
             <SelectContent>{events.map((e) => <SelectItem key={e.id} value={e.id}>{e.event_name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={sectionFilter} onValueChange={setSectionFilter}>
+            <SelectTrigger><SelectValue placeholder="Section" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sections</SelectItem>
+              {SECTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
           </Select>
           <Input placeholder="Prepared by" value={signatories.prepared} onChange={(e) => setSignatories({ ...signatories, prepared: e.target.value })} />
           <Input placeholder="Noted by" value={signatories.noted} onChange={(e) => setSignatories({ ...signatories, noted: e.target.value })} />
           <Input placeholder="Approved by" value={signatories.approved} onChange={(e) => setSignatories({ ...signatories, approved: e.target.value })} />
         </CardContent>
+        <div className="px-4 pb-4 flex justify-end">
+          <Button size="sm" variant="destructive" onClick={() => setPinOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            Delete students {sectionFilter !== "all" ? `in ${sectionFilter}` : "(all)"}
+          </Button>
+        </div>
       </Card>
 
       <Card className="overflow-hidden print:shadow-none print:border-none print:break-inside-avoid">
@@ -138,6 +168,19 @@ export default function IpcExport() {
           ))}
         </div>
       </Card>
+
+      <PinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        scope="delete_confirm"
+        title="Confirm Delete Students"
+        description={
+          sectionFilter === "all"
+            ? "Enter the delete PIN to permanently remove ALL students."
+            : `Enter the delete PIN to permanently remove all students in ${sectionFilter}.`
+        }
+        onSuccess={confirmDeleteSection}
+      />
     </div>
   );
 }
