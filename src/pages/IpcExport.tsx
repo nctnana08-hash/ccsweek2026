@@ -159,18 +159,18 @@ export default function IpcExport() {
           <div className="mt-4 space-y-5">
             {grid.map((section) => (
               <section key={section.section} className="print:break-inside-avoid">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="inline-block w-1.5 h-6" style={{ backgroundColor: "#f59e0b" }} />
-                  <h2 className="font-display text-xl font-semibold" style={{ color: "#f59e0b" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-block w-1 h-4" style={{ backgroundColor: "#f59e0b" }} />
+                  <h2 className="font-display text-sm font-semibold" style={{ color: "#f59e0b" }}>
                     Section: {section.section}
                   </h2>
                 </div>
-                <table className="w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-xs">
                   <thead>
                     <tr style={{ backgroundColor: "#f1f5f9" }}>
-                      <th className="text-left font-semibold px-4 py-3 border border-slate-200" style={{ color: "#1f3a5f" }}>Name</th>
+                      <th className="text-left font-semibold px-2 py-1.5 border border-slate-200" style={{ color: "#1f3a5f" }}>Name</th>
                       {days.map((d) => (
-                        <th key={d.id} className="text-left font-semibold px-4 py-3 border border-slate-200" style={{ color: "#1f3a5f" }}>
+                        <th key={d.id} className="text-left font-semibold px-2 py-1.5 border border-slate-200" style={{ color: "#1f3a5f" }}>
                           {d.day_label}
                         </th>
                       ))}
@@ -179,9 +179,9 @@ export default function IpcExport() {
                   <tbody>
                     {section.students.map((s, idx) => (
                       <tr key={s.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#fafafa" }}>
-                        <td className="px-4 py-3 border border-slate-200 text-slate-800">{s.name}</td>
+                        <td className="px-2 py-1.5 border border-slate-200 text-slate-800">{s.name}</td>
                         {s.days.map((d, i) => (
-                          <td key={i} className="px-4 py-3 border border-slate-200">
+                          <td key={i} className="px-2 py-1.5 border border-slate-200">
                             {d.in || d.out ? (
                               <span className="font-semibold" style={{ color: "#2563eb" }}>
                                 {d.in && d.out ? `In: ${d.in} / Out: ${d.out}` : d.in ? `In: ${d.in}` : `Out: ${d.out}`}
@@ -195,7 +195,7 @@ export default function IpcExport() {
                     ))}
                     {section.students.length === 0 && (
                       <tr>
-                        <td colSpan={days.length + 1} className="px-4 py-4 text-center text-slate-400 border border-slate-200">
+                        <td colSpan={days.length + 1} className="px-2 py-2 text-center text-slate-400 border border-slate-200">
                           No students.
                         </td>
                       </tr>
